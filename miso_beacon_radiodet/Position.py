@@ -12,7 +12,7 @@ class Position:
         self.z = z
 
     # Cartesian getters and setters
-    def setx(self, x=0):
+    def setx(self, x):
         """X coordinate setter"""
         self.x = x
 
@@ -20,7 +20,7 @@ class Position:
         """X coordinate getter"""
         return self.x
 
-    def sety(self, y=0):
+    def sety(self, y):
         """Y coordinate setter"""
         self.y = y
 
@@ -28,7 +28,7 @@ class Position:
         """Y coordinate getter"""
         return self.y
 
-    def setz(self, z=0):
+    def setz(self, z):
         """Z coordinate setter"""
         self.z = z
 
@@ -37,7 +37,7 @@ class Position:
         return self.z
 
     # Polar getters and setters
-    def setrho(self, rho=0):
+    def setrho(self, rho):
         """Rho coordinate setter"""
         # Get current phi value
         phi = 0.0
@@ -60,7 +60,7 @@ class Position:
         """Rho coordinate getter"""
         return sqrt(pow(self.x, 2) + pow(self.y, 2))
 
-    def setphi(self, phi=0):
+    def setphi(self, phi):
         """Phi coordinate setter"""
         # Get current rho value
         rho = sqrt(pow(self.x, 2) + pow(self.y, 2))
@@ -85,7 +85,7 @@ class Position:
         return phi
 
     # Spherical getters and setters
-    def setrad(self, rad=0):
+    def setrad(self, rad):
         """Radial coordinate setter"""
         # Get current inclination and azimuth value
         if self.x == 0 and self.y == 0 and self.z == 0:
@@ -106,7 +106,7 @@ class Position:
         """Radial coordinate getter"""
         return sqrt(pow(self.x, 2) + pow(self.y, 2) + pow(self.z, 2))
 
-    def setinc(self, inc=0):
+    def setinc(self, inc):
         """Inclination coordinate setter"""
         # Get current azimuth and radial value
         rad = sqrt(pow(self.x, 2) + pow(self.y, 2) + pow(self.z, 2))
@@ -127,7 +127,7 @@ class Position:
         else:
             return acos(self.z / sqrt(pow(self.x, 2) + pow(self.y, 2) + pow(self.z, 2)))
 
-    def setazi(self, azi=0):
+    def setazi(self, azi):
         """Azimuth coordinate setter"""
         # Get current inclination and radial value
         rad = sqrt(pow(self.x, 2) + pow(self.y, 2) + pow(self.z, 2))
@@ -149,19 +149,19 @@ class Position:
             return atan(self.y / self.z)
 
     # Location setters
-    def setcartesianlocation(self, x=0, y=0, z=0):
+    def setcartesianlocation(self, x, y, z=0):
         """Cartesian location setter; (x, y, z) is required"""
         self.setx(x)
         self.sety(y)
         self.setz(z)
 
-    def setcilindricallocation(self, rho=0, phi=0, z=0):
+    def setcilindricallocation(self, rho, phi, z=0):
         """Cilindrical location setter; (rho, phi, z) is required"""
         self.setrho(rho)
         self.setphi(phi)
         self.setz(z)
 
-    def setsphericallocation(self, rad=0, inc=0, azi=0):
+    def setsphericallocation(self, rad, inc, azi):
         """Cilindrical location setter; (rho, phi, z) is required"""
         self.setrad(rad)
         self.setinc(inc)
