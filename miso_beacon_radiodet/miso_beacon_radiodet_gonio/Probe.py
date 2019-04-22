@@ -19,7 +19,7 @@ class Probe:
 
     # Measures stack management
     def nomeasures(self):
-        """This method returns TRUE if the measures stack is empty"""
+        """[!!] This method returns TRUE if the measures stack is empty"""
         return self.measures == []
 
     def addmeasure(self, item):
