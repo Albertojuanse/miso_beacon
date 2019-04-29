@@ -5,10 +5,11 @@ from math import sqrt, pow, pi, sin, cos, acos, atan
 
 class Measure:
 
-    def __init__(self, uuid, arrivaltime):
+    def __init__(self, uuid, arrivaltime=0, rssi=0):
         """Constructor"""
         self.uuid = uuid
         self.arrivaltime = arrivaltime
+        self.rssi = rssi
 
     # UUID getter and setter
     def getuuid(self):
@@ -23,3 +24,10 @@ class Measure:
 
     def setarrivaltime(self, arrivaltime):
         self.arrivaltime = arrivaltime
+
+    # RSSI value getter and setter
+    def getrssi(self):
+        return self.rssi
+
+    def setrssi(self, rssi):
+        self.rssi = rssi
