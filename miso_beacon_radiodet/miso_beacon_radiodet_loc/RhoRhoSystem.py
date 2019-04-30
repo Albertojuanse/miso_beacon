@@ -1,7 +1,9 @@
 """This class defines any system that measures a position using ranging technologies"""
 
-from math import asin, sqrt, pow
+from math import asin, sqrt, pow, exp
 from miso_beacon_radiodet.Position import Position
+
+from scipy.optimize import fsolve
 
 c = 299792458
 
@@ -16,6 +18,7 @@ class RhoRhoSystem:
             self.measures = []
         self.uuid = []
         self.classifiedmeasures = []
+        self.averagedmeasures = []
         self.ranges = []
 
     def classifymeasures(self):
@@ -39,12 +42,23 @@ class RhoRhoSystem:
                 if measure.getuuid() == uuid:
                     self.classifiedmeasures[i].append(measure)
 
+    def averagemeasures(self):
+        """This method calculates the measures' average"""
+        # For each measures source...
+        for i, uuid in enumerate(self.uuid):
+            # ...get the average.
+            sum = 0
+            for measure in self.classifiedmeasures[i]:
+                sum = sum + measure.getrssi()
+            self.averagedmeasures.append((uuid, sum / len(self.classifiedmeasures[i])))
+
     def getpositionusingtime(self):
         """This method performs the calculate of position using time referencies"""
         position = Position()
 
-        # Classify the input measures
+        # Classify the input measures and averaging
         self.classifymeasures()
+        self.averagemeasures()
 
         # Calculate average ranging
         for i, uuid in enumerate(self.uuid):
@@ -53,15 +67,30 @@ class RhoRhoSystem:
                 sum = sum + measure.getarrivaltime()
                 # Impossible to do with any absolute temporal reference
 
-    def getpositionusingrssi(self):
+    def getpositionusingrssi(self, reference1, reference2):
         """This method performs the calculate of position using time referencies"""
         position = Position()
 
-        # Classify the input measures
+        # Classify the input measures and averaging
         self.classifymeasures()
+        self.averagemeasures()
 
-        # Calculate average ranging
-        # For each measures source...
-        for i, uuid in enumerate(self.uuid):
-            pass
+        x1 = reference1.getx()
+        y1 = reference1.gety()
+        x2 = reference2.getx()
+        y2 = reference2.gety()
+        rssi1 = self.averagedmeasures[0][1]
+        rssi2 = self.averagedmeasures[1][1]
+
+        # Solve the determination equations
+        def equations(p):
+            x, y = p
+            return (x - x1)**2 + (y - y1)**2 - rssi1**2, (x - x2)**2 + (y - y2)**2 - rssi2**2
+
+        x, y = fsolve(equations, (1, 1))
+
+        position.setx(x)
+        position.sety(y)
+
+        return position
 
