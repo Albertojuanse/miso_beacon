@@ -1,7 +1,7 @@
 """This class defines any system that measures a position using ranging technologies"""
 
 from math import asin, sqrt, pow, exp
-from miso_beacon_radiodet.Position import Position
+from miso_beacon_radiodet.position import Position
 
 from scipy.optimize import fsolve
 
@@ -23,6 +23,7 @@ class RhoRhoSystem:
 
     def classifymeasures(self):
         """This method classifies the measures using its UUID identification"""
+        self.classifiedmeasures = []
         # It could be as large as the number of measures if everyone has got a different UUID
         self.classifiedmeasures = [[] for i in range(len(self.measures))]
 
@@ -44,6 +45,7 @@ class RhoRhoSystem:
 
     def averagemeasures(self):
         """This method calculates the measures' average"""
+        self.averagedmeasures = []
         # For each measures source...
         for i, uuid in enumerate(self.uuid):
             # ...get the average.
@@ -53,7 +55,7 @@ class RhoRhoSystem:
             self.averagedmeasures.append((uuid, sum / len(self.classifiedmeasures[i])))
 
     def getpositionusingtime(self):
-        """This method performs the calculate of position using time referencies"""
+        """This method performs the calculate of position using time references"""
         position = Position()
 
         # Classify the input measures and averaging
@@ -67,8 +69,8 @@ class RhoRhoSystem:
                 sum = sum + measure.getarrivaltime()
                 # Impossible to do with any absolute temporal reference
 
-    def getpositionusingrssi(self, reference1, reference2):
-        """This method performs the calculate of position using time referencies"""
+    def getpositionusingrssi(self, reference1, reference2, prediction=(1, 1)):
+        """This method performs the calculate of position using time references"""
         position = Position()
 
         # Classify the input measures and averaging
@@ -87,7 +89,7 @@ class RhoRhoSystem:
             x, y = p
             return (x - x1)**2 + (y - y1)**2 - rssi1**2, (x - x2)**2 + (y - y2)**2 - rssi2**2
 
-        x, y = fsolve(equations, (1, 1))
+        x, y = fsolve(equations, prediction)
 
         position.setx(x)
         position.sety(y)
