@@ -2,10 +2,9 @@
 
 from math import asin, sqrt, pow, exp
 from miso_beacon_radiodet.position import Position
+from miso_beacon_radiodet.miso_beacon_range.rssi_ranger import RSSIRanger
 
 from scipy.optimize import fsolve
-
-c = 299792458
 
 
 class RhoRhoSystem:
@@ -83,11 +82,13 @@ class RhoRhoSystem:
         y2 = reference2.gety()
         rssi1 = self.averagedmeasures[0][1]
         rssi2 = self.averagedmeasures[1][1]
+        dis1 = RSSIRanger.rangerawdistance(rssi1)
+        dis2 = RSSIRanger.rangerawdistance(rssi2)
 
         # Solve the determination equations
         def equations(p):
             x, y = p
-            return (x - x1)**2 + (y - y1)**2 - rssi1**2, (x - x2)**2 + (y - y2)**2 - rssi2**2
+            return (x - x1)**2 + (y - y1)**2 - dis1**2, (x - x2)**2 + (y - y2)**2 - dis2**2
 
         x, y = fsolve(equations, prediction)
 
