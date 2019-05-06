@@ -17,7 +17,7 @@ MAX_MEASURES = 10
 
 class Radionavigator (Thread):
 
-    def __init__(self, position, references):
+    def __init__(self, position, references, canvas=None):
         """Constructor"""
         super().__init__()
         self.started = True
@@ -32,6 +32,9 @@ class Radionavigator (Thread):
         self.measures = []
 
         self.state = STATES[0]
+
+        if canvas:
+            self.canvas = canvas
 
 
     # Getters and setters
@@ -74,6 +77,10 @@ class Radionavigator (Thread):
     def setstarted(self, started=True):
         """Started flag setter; True default"""
         self.started = started
+
+    def gettrajectory(self):
+        """Getter of trajectory"""
+        return self.trajectory
 
     # Route projection
     def projecttoground(self, position):
@@ -135,6 +142,8 @@ class Radionavigator (Thread):
                                                                         )
                                                                        )
         self.trajectory.append(self.currentposition)
+        if self.canvas:
+            canvas.paint(self.currentposition.getx(), self.currentposition.sety())
         return True
 
     def isnewdata(self):
