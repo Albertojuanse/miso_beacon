@@ -9,7 +9,7 @@ from scipy.optimize import fsolve
 
 class RhoRhoSystem:
 
-    def __init__(self, measures=None):
+    def __init__(self, measures=None, ):
         """Constructor"""
         if measures:
             self.measures = measures
@@ -19,6 +19,9 @@ class RhoRhoSystem:
         self.classifiedmeasures = []
         self.averagedmeasures = []
         self.ranges = []
+
+    def setmeasures(self, measures):
+        self.measures = measures
 
     def classifymeasures(self):
         """This method classifies the measures using its UUID identification"""
@@ -68,7 +71,7 @@ class RhoRhoSystem:
                 sum = sum + measure.getarrivaltime()
                 # Impossible to do with any absolute temporal reference
 
-    def getpositionusingrssi(self, reference1, reference2, prediction=(1, 1)):
+    def getpositionusingrssiranging(self, reference1, reference2, prediction=(1, 1)):
         """This method performs the calculate of position using time references"""
         position = Position()
 
@@ -76,24 +79,24 @@ class RhoRhoSystem:
         self.classifymeasures()
         self.averagemeasures()
 
-        x1 = reference1.getx()
-        y1 = reference1.gety()
-        x2 = reference2.getx()
-        y2 = reference2.gety()
-        rssi1 = self.averagedmeasures[0][1]
-        rssi2 = self.averagedmeasures[1][1]
-        dis1 = RSSIRanger.rangerawdistance(rssi1)
-        dis2 = RSSIRanger.rangerawdistance(rssi2)
+        if len(self.uuid) > 1:
+            x1 = reference1.getx()
+            y1 = reference1.gety()
+            x2 = reference2.getx()
+            y2 = reference2.gety()
+            rssi1 = self.averagedmeasures[0][1]
+            rssi2 = self.averagedmeasures[1][1]
+            dis1 = RSSIRanger.rangerawdistance(rssi1)
+            dis2 = RSSIRanger.rangerawdistance(rssi2)
 
-        # Solve the determination equations
-        def equations(p):
-            x, y = p
-            return (x - x1)**2 + (y - y1)**2 - dis1**2, (x - x2)**2 + (y - y2)**2 - dis2**2
+            # Solve the determination equations
+            def equations(p):
+                x, y = p
+                return (x - x1)**2 + (y - y1)**2 - dis1**2, (x - x2)**2 + (y - y2)**2 - dis2**2
 
-        x, y = fsolve(equations, prediction)
+            x, y = fsolve(equations, prediction)
 
-        position.setx(x)
-        position.sety(y)
-
+            position.setx(x)
+            position.sety(y)
         return position
 

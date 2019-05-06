@@ -2,25 +2,37 @@
 
 from math import asin, sqrt, pow, exp
 from miso_beacon_radiodet.position import Position
-from miso_beacon_radiodet.miso_beacon_range.rssi_ranger import RSSIRanger
+from miso_beacon_radiodet.miso_beacon_radiodet_loc.rho_rho_system import RhoRhoSystem
+from miso_beacon_demo import measures_monitor
 
 from scipy.optimize import fsolve
 import time
+from threading import Thread, Condition
+import random
+from tkinter import *
 
 STATES = ["WAIT", "NO_LOCATED", "LOCATED", "NEW_DATA"]
+MAX_MEASURES = 10
 
-class Radionavigator:
 
-    def __init__(self):
+class Radionavigator (Thread):
+
+    def __init__(self, position, references):
         """Constructor"""
+        super().__init__()
+        self.started = True
+        self.references = references
         self.currentposition = Position()
-        self.initialposition = Position()
-        self.targetposition = Position()
+        self.initialposition = position
+        self.targetposition = None
         self.trajectory = []
         self.route = []
         self.inittime = time.time()
+        self.condition = measures_monitor.getcondition()
+        self.measures = []
 
         self.state = STATES[0]
+
 
     # Getters and setters
     def getcurrentposition(self):
@@ -39,32 +51,128 @@ class Radionavigator:
         """Target position setter"""
         self.targetposition = position
 
+    def getinitialposition(self):
+        """Initial position getter"""
+        return self.initialposition
+
+    def setinitialposition(self, position=Position()):
+        """Initial position setter"""
+        self.initialposition = position
+
+    def getreferences(self):
+        """References getter"""
+        return self.references
+
+    def setreferences(self, references):
+        """References setter"""
+        self.references = references
+
+    def isstarted(self):
+        """Started flag getter"""
+        return self.started
+
+    def setstarted(self, started=True):
+        """Started flag setter; True default"""
+        self.started = started
+
     # Route projection
     def projecttoground(self, position):
         """The method 'projects' a position to the ground """
-        newposition = Position(x=position.getx(), y=position.gety(), z=0)
-        return newposition
+        if position:
+            newposition = Position(x=position.getx(), y=position.gety(), z=0)
+            return newposition
+        else:
+            return position
 
     # Journey control
-    def initjourney(self, initialposition):
-        """This method sets the system to an initial point"""
-        self.initialposition = initialposition
-        self.state = "NO_LOCATED"
-        self.locate()
+    def run(self):
+        """Overwrite run method with the state machine of the navigator"""
+        time.sleep(random.uniform(0, 1))
+        while True:
+            print(self.state)
+            if self.state == "WAIT":
+                if self.started:
+                    if self.initjourney():
+                        self.state = "NEW_DATA"
+            elif self.state == "NEW_DATA":
+                if self.getnewdata():
+                    self.state = "NO_LOCATED"
+            elif self.state == "NO_LOCATED":
+                if self.locate():
+                    if self.currentposition:
+                        self.state = "LOCATED"
+            elif self.state == "LOCATED":
+                print(self.currentposition)
+                if self.isarrived():
+                    self.started = False
+                    self.state = "WAIT"
+                else:
+                    if self.isnewdata():
+                        self.state = "NEW_DATA"
+
+    def initjourney(self):
+        """This method sets the system to an initial position"""
         self.inittime = time.time()
+        self.system = RhoRhoSystem()
+        return True
+
+    def targetpath(self):
+        """This method calculates the target path that must be done for reaching it"""
+        pass
 
     def locate(self):
-        while self.state != "LOCATED":
-            pass
+        """This method localizes the radionavigator using the measures it gets and offers the target direction"""
+        for mea in self.measures:
+            print(mea.getrssi(), mea.getuuid())
+        for ref in self.references:
+            print(ref.getx(), ref.gety())
+        print(self.currentposition, self.initialposition, self.targetposition)
+        self.system.setmeasures(self.measures)
+        self.currentposition = self.system.getpositionusingrssiranging(self.references[0],
+                                                                       self.references[1],
+                                                                       (self.currentposition.getx() + 1,
+                                                                        self.currentposition.gety() + 1
+                                                                        )
+                                                                       )
+        self.trajectory.append(self.currentposition)
+        return True
 
-    def isarrived(self, precision=2):
+    def isnewdata(self):
+        """This method ask if there is new measures available for trigering a new location process"""
+        self.condition.acquire()
+        newdata = measures_monitor.isempty()
+        self.condition.release()
+        return newdata
+
+    def getnewdata(self):
+        """This method ask the new measures available for location process"""
+        flag = False
+        self.condition.acquire()
+        while True:
+            measure = measures_monitor.dequeuemeasure()
+            if measure:
+                if len(self.measures) <= MAX_MEASURES:
+                    self.measures.append(measure)
+                else:
+                    self.measures.pop(0)
+                    self.measures.append(measure)
+                flag = True
+                break
+            self.condition.wait()
+        self.condition.release()
+        print(len(self.measures))
+        return flag
+
+    def isarrived(self, precision=5):
         """This method checks if the current position is near enough to finish position"""
         projectedinitialposition = self.projecttoground(self.initialposition)
         projectedcurrentposition = self.projecttoground(self.currentposition)
-        distance = sqrt( pow(projectedinitialposition.getx() - projectedcurrentposition.getx(), 2) +
-                         pow(projectedinitialposition.gety() - projectedcurrentposition.gety(), 2) )
-        if distance < precision:
-            return True
+        if projectedcurrentposition and projectedinitialposition:
+            distance = sqrt(pow(projectedinitialposition.getx() - projectedcurrentposition.getx(), 2) +
+                            pow(projectedinitialposition.gety() - projectedcurrentposition.gety(), 2))
+            if distance < precision:
+                return True
+            else:
+                return False
         else:
             return False
-
