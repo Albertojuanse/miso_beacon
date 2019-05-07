@@ -3,8 +3,9 @@
 
 class Vertex:
 
-    def __init__(self, position, edges, matrix):
+    def __init__(self, name, position, edges, matrix):
         """Constructor"""
+        self.name = name
         self.position = position
         self.edges = edges
         self.matrix = matrix

@@ -5,6 +5,8 @@ from threading import Condition
 measures = []
 condition = Condition()
 
+flag_finish = False
+
 
 def isempty():
     return len(measures) == 0

@@ -164,12 +164,12 @@ class Radionavigator (Thread):
         return True
 
     def isnewdata(self):
-        """This method ask if there is new measures available for trigering a new location process"""
+        """This method ask if there is new measures available for triggering a new location process"""
         self.condition.acquire()
         newdata = measures_monitor.isempty()
         self.condition.notify()
         self.condition.release()
-        return newdata
+        return not newdata
 
     def getnewdata(self):
         """This method ask the new measures available for location process"""
