@@ -73,7 +73,7 @@ class RhoRhoSystem:
 
     def getpositionusingrssiranging(self, reference1, reference2, prediction=(1, 1)):
         """This method performs the calculate of position using time references"""
-        position = Position()
+        position = Position(x=0.0, y=0.0)
 
         # Classify the input measures and averaging
         self.classifymeasures()

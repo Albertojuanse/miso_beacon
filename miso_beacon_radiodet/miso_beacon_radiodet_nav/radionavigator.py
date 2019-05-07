@@ -4,10 +4,11 @@ from math import asin, sqrt, pow, exp
 from miso_beacon_radiodet.position import Position
 from miso_beacon_radiodet.miso_beacon_radiodet_loc.rho_rho_system import RhoRhoSystem
 from miso_beacon_demo import measures_monitor
+from miso_beacon_demo import points_monitor
 
 from scipy.optimize import fsolve
 import time
-from threading import Thread, Condition
+from threading import Thread
 import random
 from tkinter import *
 
@@ -29,13 +30,15 @@ class Radionavigator (Thread):
         self.route = []
         self.inittime = time.time()
         self.condition = measures_monitor.getcondition()
+        self.pointscondition = points_monitor.getcondition()
         self.measures = []
 
         self.state = STATES[0]
 
         if canvas:
             self.canvas = canvas
-
+        else:
+            self.canvas = None
 
     # Getters and setters
     def getcurrentposition(self):
@@ -86,7 +89,9 @@ class Radionavigator (Thread):
     def projecttoground(self, position):
         """The method 'projects' a position to the ground """
         if position:
+            print("method projected", position.getx(), position.gety())
             newposition = Position(x=position.getx(), y=position.gety(), z=0)
+            print(newposition)
             return newposition
         else:
             return position
@@ -100,6 +105,10 @@ class Radionavigator (Thread):
             if self.state == "WAIT":
                 if self.started:
                     if self.initjourney():
+                        self.pointscondition.acquire()
+                        points_monitor.isarrived = False
+                        self.pointscondition.notify()
+                        self.pointscondition.release()
                         self.state = "NEW_DATA"
             elif self.state == "NEW_DATA":
                 if self.getnewdata():
@@ -112,6 +121,10 @@ class Radionavigator (Thread):
                 print(self.currentposition)
                 if self.isarrived():
                     self.started = False
+                    self.pointscondition.acquire()
+                    points_monitor.isarrived = True
+                    self.pointscondition.notify()
+                    self.pointscondition.release()
                     self.state = "WAIT"
                 else:
                     if self.isnewdata():
@@ -142,14 +155,19 @@ class Radionavigator (Thread):
                                                                         )
                                                                        )
         self.trajectory.append(self.currentposition)
-        if self.canvas:
-            canvas.paint(self.currentposition.getx(), self.currentposition.sety())
+        if self.canvas and len(self.measures) > 2:
+            self.canvas.paint(self.currentposition.getx(), self.currentposition.gety())
+        self.pointscondition.acquire()
+        points_monitor.enqueuepoint(Position(x=self.currentposition.getx(), y=self.currentposition.gety()))
+        self.pointscondition.notify()
+        self.pointscondition.release()
         return True
 
     def isnewdata(self):
         """This method ask if there is new measures available for trigering a new location process"""
         self.condition.acquire()
         newdata = measures_monitor.isempty()
+        self.condition.notify()
         self.condition.release()
         return newdata
 
@@ -168,18 +186,21 @@ class Radionavigator (Thread):
                 flag = True
                 break
             self.condition.wait()
+        self.condition.notify()
         self.condition.release()
         print(len(self.measures))
         return flag
 
-    def isarrived(self, precision=5):
+    def isarrived(self, precision=1):
         """This method checks if the current position is near enough to finish position"""
-        projectedinitialposition = self.projecttoground(self.initialposition)
         projectedcurrentposition = self.projecttoground(self.currentposition)
-        if projectedcurrentposition and projectedinitialposition:
-            distance = sqrt(pow(projectedinitialposition.getx() - projectedcurrentposition.getx(), 2) +
-                            pow(projectedinitialposition.gety() - projectedcurrentposition.gety(), 2))
-            if distance < precision:
+        projectedtargetposition = self.projecttoground(self.targetposition)
+        print("projected", projectedtargetposition, projectedcurrentposition)
+        if projectedcurrentposition and projectedtargetposition:
+            distance = sqrt(pow(projectedtargetposition.getx() - projectedcurrentposition.getx(), 2) +
+                            pow(projectedtargetposition.gety() - projectedcurrentposition.gety(), 2))
+            print(distance)
+            if distance < precision and self.state == "LOCATED" and len(self.measures) > 10:
                 return True
             else:
                 return False
