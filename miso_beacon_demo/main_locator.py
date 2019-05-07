@@ -39,7 +39,10 @@ def main():
         locatedpositions.append((index, points_monitor.dequeuepoint()))
         index = index + 1
 
-    model = model_generator.createmodel(locatedpositions)
+    classmodel, dicmodel = model_generator.createmodel("MODELO_NOMBRE", locatedpositions)
+
+    print(classmodel)
+    print(dicmodel)
 
 
 if __name__ == "__main__":

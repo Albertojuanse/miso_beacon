@@ -10,6 +10,14 @@ class Vertex:
         self.edges = edges
         self.matrix = matrix
 
+    def getname(self):
+        """Getter of vertex's name"""
+        return self.name
+
+    def setname(self, name):
+        """Setter of vertex's name"""
+        self.name = name
+
     def getposition(self):
         """Getter of vertex's position"""
         return self.position

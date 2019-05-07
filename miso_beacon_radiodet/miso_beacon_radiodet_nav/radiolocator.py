@@ -58,13 +58,13 @@ class Radiolocator (Thread):
         self.inittime = time.time()
 
     # Getters and setters
-    def getcurrentposition(self):
+    def gettargetposition(self):
         """Current position getter"""
-        return self.currentposition
+        return self.targetposition
 
-    def setcurrentposition(self, position):
+    def settargetposition(self, position):
         """Current position setter"""
-        self.currentposition = position
+        self.targetposition = position
 
     def isidle(self):
         """Idle getter"""
