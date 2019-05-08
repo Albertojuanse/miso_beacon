@@ -52,3 +52,5 @@ class MeasuresGenerator (Thread):
             if flag:
                 break
 
+    def
+
