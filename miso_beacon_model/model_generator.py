@@ -1,7 +1,6 @@
 """This functions are used for creating a graph's model"""
 
 from miso_beacon_model.miso_beacon_model_meta.graph_metamodel import GRAPH_METAMODEL
-from miso_beacon_model.model import Model
 from miso_beacon_ai.graph_functions import convexhullgrahamscan
 
 from math import sqrt, pow
@@ -9,7 +8,7 @@ from math import sqrt, pow
 
 def createmodel(name, locations, metamodel=GRAPH_METAMODEL):
     """This function creates a model returns a dictionary object with the model representation"""
-    classmodel = Model(name)
+    model = [name]
 
     # Create components
     vertices = generatevertices(locations, metamodel)
@@ -20,12 +19,12 @@ def createmodel(name, locations, metamodel=GRAPH_METAMODEL):
 
     # Compose the class object Model
     for comp in vertices:
-        classmodel.addcomponent(comp)
+        model.append(comp)
     for comp in edges:
-        classmodel.addcomponent(comp)
+        model.append(comp)
 
     dicmodel = generateclassdic(name, vertices, edges)
-    return classmodel, dicmodel
+    return model, dicmodel
 
 
 def generatevertices(locations, metamodel):
@@ -59,6 +58,16 @@ def generateedges(vertices, metamodel):
         )
         newedge = metamodel[1](distance, [v1, v2], [], None)
         edges.append(newedge)
+    # Last one is generated manually, since array is not "circular" and so last element is not connected with first one
+    v1 = convexhull[len(convexhull) -1]
+    v2 = convexhull[0]
+    distance = sqrt(
+        pow(v2.getposition().getx() - v1.getposition().getx(), 2) +
+        pow(v2.getposition().gety() - v1.getposition().gety(), 2)
+    )
+    newedge = metamodel[1](distance, [v1, v2], [], None)
+    edges.append(newedge)
+
     return edges
 
 
@@ -70,7 +79,7 @@ def generatecompletegraph(vertices, edges):
 def generateclassdic(name, vertices, edges):
     """This function creates the model representation descriptive dictionary"""
     dic = {
-        "name": name,
+        "model name": name,
         "vertices": {},
         "edges": {}
     }
@@ -93,7 +102,7 @@ def generateclassdic(name, vertices, edges):
                 }
             })
 
-        dic["vertices"].update({
+        dic["edges"].update({
             str(i): {
                 "vertices": verticesdic,
                 "weight": str(edge.getweight()),

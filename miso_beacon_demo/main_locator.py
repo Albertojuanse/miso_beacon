@@ -38,6 +38,17 @@ def main():
     while not points_monitor.isempty():
         locatedpositions.append((index, points_monitor.dequeuepoint()))
         index = index + 1
+    """
+
+    locatedpositions = [(0, Position(x=10, y=10)),
+                        (1, Position(x=30, y=90)),
+                        (2, Position(x=100, y=10)),
+                        (3, Position(x=70, y=15)),
+                        (4, Position(x=100, y=100)),
+                        (5, Position(x=10, y=100)),
+                        (6, Position(x=50, y=60))
+                        ]
+    """
 
     classmodel, dicmodel = model_generator.createmodel("MODELO_NOMBRE", locatedpositions)
 

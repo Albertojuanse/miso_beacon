@@ -114,6 +114,8 @@ class Radiolocator (Thread):
                         else:
                             if self.isnewdata():
                                 self.state = "NEW_DATA"
+                            else:
+                                print("[ERROR]: NO_DATA")
                     time.sleep(0.5)
 
                 print("Target position:", self.targetposition)
