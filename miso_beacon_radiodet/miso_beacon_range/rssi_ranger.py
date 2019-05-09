@@ -1,5 +1,7 @@
 """This class defines a system capable to calculate a distance using RSSI values"""
 
+from miso_beacon_ai.ranging_functions import rangedistance
+
 from math import sqrt, pow, pi
 
 C = 299792458
@@ -13,6 +15,6 @@ class RSSIRanger:
         """Constructor"""
 
     @staticmethod
-    def rangerawdistance(rssi):
+    def rangedistance(rssi):
         """This method calculates the distance that a signal comes from using its RSSI value"""
-        return (C / (4 * pi * F)) * sqrt(G * pow(10, rssi/10))
+        return rangedistance(rssi)

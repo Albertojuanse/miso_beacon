@@ -5,6 +5,7 @@ from miso_beacon_radiodet.position import Position
 from miso_beacon_radiodet.miso_beacon_radiodet_loc.rho_rho_system import RhoRhoSystem
 from miso_beacon_radiodet.miso_beacon_radiodet_loc.rho_theta_system import RhoThetaSystem
 from miso_beacon_radiodet.miso_beacon_radiodet_loc.theta_theta_system import ThetaThetaSystem
+from miso_beacon_ai.ranging_functions import calculatedistance
 from miso_beacon_demo import measures_monitor
 from miso_beacon_demo import points_monitor
 
@@ -209,10 +210,7 @@ class Radiolocator (Thread):
             lastdistance = 0
             number = len(self.calculatedpositions) - 1
             for i in range(EVALUATIONS_FOR_PRECISION):
-                distance = sqrt(
-                    pow(self.calculatedpositions[number-i-1].getx() - self.calculatedpositions[number-i-2].getx(), 2) +
-                    pow(self.calculatedpositions[number-i-1].gety() - self.calculatedpositions[number-i-2].gety(), 2)
-                )
+                distance = calculatedistance(self.calculatedpositions[number-i-2], self.calculatedpositions[number-i-1])
                 sum = sum + (distance - lastdistance)
 
             if sum < PRECISION:

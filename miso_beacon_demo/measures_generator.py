@@ -5,6 +5,7 @@ import random
 import time
 
 from miso_beacon_radiodet.measure import Measure
+from miso_beacon_radiodet.miso_beacon_range.rssi_ranger import RSSIRanger
 from miso_beacon_demo import measures_monitor
 
 
@@ -52,5 +53,6 @@ class MeasuresGenerator (Thread):
             if flag:
                 break
 
-    def
-
+    def generaterssimeasure(self, generatorposition, deviceposition):
+        """This method generate a RSSI value measure, using a ranger, as measured by a device from another point."""
+        pass

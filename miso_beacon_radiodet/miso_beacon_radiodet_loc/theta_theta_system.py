@@ -86,8 +86,8 @@ class ThetaThetaSystem:
             y2 = reference2.gety()
             rssi1 = self.averagedmeasures[0][1]
             rssi2 = self.averagedmeasures[1][1]
-            dis1 = RSSIRanger.rangerawdistance(rssi1)
-            dis2 = RSSIRanger.rangerawdistance(rssi2)
+            dis1 = RSSIRanger.rangedistance(rssi1)
+            dis2 = RSSIRanger.rangedistance(rssi2)
 
             # Solve the determination equations
             def equations(p):

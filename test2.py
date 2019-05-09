@@ -12,6 +12,6 @@ print(sys.getpositionusingrssi(Position(x=0, y=0), Position(x=0, y=2), predictio
 
 from miso_beacon_radiodet.miso_beacon_range.rssi_ranger import RSSIRanger
 
-print(RSSIRanger.rangerawdistance(50))
+print(RSSIRanger.rangedistance(50))
 
 

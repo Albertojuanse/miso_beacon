@@ -2,6 +2,7 @@
 
 from miso_beacon_model.miso_beacon_model_meta.graph_metamodel import GRAPH_METAMODEL
 from miso_beacon_ai.graph_functions import convexhullgrahamscan
+from miso_beacon_ai.ranging_functions import calculatedistance
 
 from math import sqrt, pow
 
@@ -12,7 +13,7 @@ def createmodel(name, locations, metamodel=GRAPH_METAMODEL):
 
     # Create components
     vertices = generatevertices(locations, metamodel)
-    edges = generateedges(vertices, metamodel)
+    edges, convexhull, descartedvertices = generateedges(vertices, metamodel)
 
     # Complete information of components
     vertices, edges = generatecompletegraph(vertices, edges)
@@ -23,7 +24,7 @@ def createmodel(name, locations, metamodel=GRAPH_METAMODEL):
     for comp in edges:
         model.append(comp)
 
-    dicmodel = generateclassdic(name, vertices, edges)
+    dicmodel = generateclassdic(name, convexhull, descartedvertices, edges)
     return model, dicmodel
 
 
@@ -40,9 +41,9 @@ def generatevertices(locations, metamodel):
 def generateedges(vertices, metamodel):
     """This function creates the 'edge' type components of the model representation"""
     # Get the convex hull of the vertices set, which for an small graph must be an ccw ordered set of the vertices
-    convexhull, vertices, descartedvertices = convexhullgrahamscan(vertices)
-    if not descartedvertices == []:
-        for vertex in descartedvertices:
+    convexhull, vertices, discardedvertices = convexhullgrahamscan(vertices)
+    if not discardedvertices == []:
+        for vertex in discardedvertices:
             print("DESCARTED_VERTEX:", vertex.getposition().getx(), vertex.getposition().gety())
     else:
         print("NOT DESCARTED VERTICES")
@@ -52,23 +53,18 @@ def generateedges(vertices, metamodel):
     for i in range(len(convexhull) - 1):
         v1 = convexhull[i]
         v2 = convexhull[i + 1]
-        distance = sqrt(
-            pow(v2.getposition().getx() - v1.getposition().getx(), 2) +
-            pow(v2.getposition().gety() - v1.getposition().gety(), 2)
-        )
+
+        distance = calculatedistance(v1.getposition(), v2.getposition())
         newedge = metamodel[1](distance, [v1, v2], [], None)
         edges.append(newedge)
     # Last one is generated manually, since array is not "circular" and so last element is not connected with first one
-    v1 = convexhull[len(convexhull) -1]
+    v1 = convexhull[len(convexhull) - 1]
     v2 = convexhull[0]
-    distance = sqrt(
-        pow(v2.getposition().getx() - v1.getposition().getx(), 2) +
-        pow(v2.getposition().gety() - v1.getposition().gety(), 2)
-    )
+    distance = calculatedistance(v1.getposition(), v2.getposition())
     newedge = metamodel[1](distance, [v1, v2], [], None)
     edges.append(newedge)
 
-    return edges
+    return edges, convexhull, discardedvertices
 
 
 def generatecompletegraph(vertices, edges):
@@ -76,12 +72,13 @@ def generatecompletegraph(vertices, edges):
     return vertices, edges
 
 
-def generateclassdic(name, vertices, edges):
+def generateclassdic(name, vertices, discardedvertices, edges):
     """This function creates the model representation descriptive dictionary"""
     dic = {
         "model name": name,
         "vertices": {},
-        "edges": {}
+        "edges": {},
+        "discarded vertices": {}
     }
 
     for i, vertex in enumerate(vertices):
@@ -107,6 +104,14 @@ def generateclassdic(name, vertices, edges):
                 "vertices": verticesdic,
                 "weight": str(edge.getweight()),
                 "isDirected": str(edge.getisdirected())
+            }
+        })
+
+    for i, vertex in enumerate(discardedvertices):
+        dic["discarded vertices"].update({
+            str(i): {
+                "name": vertex.getname(),
+                "position": str(vertex.getposition()),
             }
         })
 

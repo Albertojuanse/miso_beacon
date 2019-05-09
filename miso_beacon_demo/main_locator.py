@@ -14,7 +14,7 @@ POSITIONS = [
 
 def main():
     """Main execution"""
-
+    """
     for pos in POSITIONS:
         generator1 = MeasuresGenerator(uuid=1, mode="RADIOLOCATOR", rssi=pos[0])
         generator2 = MeasuresGenerator(uuid=2, mode="RADIOLOCATOR", rssi=pos[1])
@@ -48,7 +48,6 @@ def main():
                         (5, Position(x=10, y=100)),
                         (6, Position(x=50, y=60))
                         ]
-    """
 
     classmodel, dicmodel = model_generator.createmodel("MODELO_NOMBRE", locatedpositions)
 

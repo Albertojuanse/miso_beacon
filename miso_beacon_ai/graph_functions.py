@@ -72,8 +72,8 @@ def convexhullgrahamscan(vertices):
     for tup in convexhulltuples:
         convexhull.append(tup[1])
 
-    # And comparing both set, the hull vertex are popped out and so descarted ones are saved
-    descartedvertices = list(vertices)
+    # And comparing both set, the hull vertex are popped out and so discarded ones are saved
+    discardedvertices = list(vertices)
     for hullvertex in convexhull:
         hv_x = hullvertex.getposition().getx()
         hv_y = hullvertex.getposition().gety()
@@ -81,6 +81,6 @@ def convexhullgrahamscan(vertices):
             v_x = vertex.getposition().getx()
             v_y = vertex.getposition().gety()
             if v_x == hv_x and v_y == hv_y:
-                descartedvertices.remove(vertex)
+                discardedvertices.remove(vertex)
 
-    return convexhull, vertices, descartedvertices
+    return convexhull, vertices, discardedvertices
