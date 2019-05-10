@@ -1,11 +1,13 @@
 """This measures monitor is access by radionavigation devices and final modelling tools"""
 
 from threading import Condition
+from miso_beacon_radiodet.position import Position
 
 points = []
 condition = Condition()
 
 isarrived = False
+initialposition = Position(x=0, y=0)
 
 
 def isempty():

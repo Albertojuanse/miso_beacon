@@ -1,51 +1,62 @@
 """This class generates Measure objects and serve them to the measures monitor"""
 
-from threading import Thread, Condition
+from threading import Thread
 import random
 import time
 
 from miso_beacon_radiodet.measure import Measure
-from miso_beacon_radiodet.miso_beacon_range.rssi_ranger import RSSIRanger
+from miso_beacon_ai.ranging_functions import calculatedistance, calculaterssifordistance
 from miso_beacon_demo import measures_monitor
+from miso_beacon_demo import feedback_monitor
 
 
 class MeasuresGenerator (Thread):
 
-    def __init__(self, timestep=1, uuid=0, mode="RADIONAVIGATOR", rssi=50):
+    def __init__(self,
+                 timestep=1,
+                 uuid=0,
+                 mode="RADIONAVIGATOR",
+                 randomparameters=(0, 1),
+                 frecuency=2440000000,
+                 gain=1):
         """Constructor"""
         super().__init__()
         self.timestep = timestep
         self.uuid = uuid
         self.mode = mode
-        self.rssi = rssi
+        self.expectedvalue = randomparameters[0]
+        self.variance = randomparameters[1]
+        self.frecuency = frecuency
+        self.gain = gain
         self.condition = measures_monitor.getcondition()
-
-        # Navigator parameters
-        self.navigatorcount = 0
-        self.navigatormaxrssi = 100
+        self.feedbackcondition = feedback_monitor.getcondition()
 
     def run(self):
         """Overwrite run method"""
         time.sleep(random.uniform(0, 1))
         while True:
             if self.mode == "RADIOLOCATOR":
-                shift = random.gauss(0, 1) * 1.5
-                measure = Measure(self.uuid, rssi=self.rssi + shift)
-                self.condition.acquire()
-                measures_monitor.enqueuemeasure(measure)
-                self.condition.notify()
-                self.condition.release()
-                time.sleep(1)
+                # Static source and static device
+                sourceposition = sourcepositions[0]
+                deviceposition = devicepositions[0]
+                measure = generaterandomrssimeasurewithtwopositions(self.uuid,
+                                                                    sourceposition,
+                                                                    deviceposition)
+                self.enqueuemeasure(measure)
             elif self.mode == "RADIONAVIGATOR":
-                shift = random.gauss(0, 1) * 1.5
-                measure = Measure(self.uuid, rssi=self.navigatormaxrssi - self.navigatorcount + shift)
-                self.condition.acquire()
-                measures_monitor.enqueuemeasure(measure)
-                self.condition.notify()
-                self.condition.release()
-                self.navigatorcount = self.navigatorcount + 1
-                time.sleep(1)
+                # Static source but mobile device
+                sourceposition = sourcepositions[0]
+                deviceposition = self.dequeueposition()
+                measure = generaterandomrssimeasurewithtwopositions(self.uuid,
+                                                                    sourceposition,
+                                                                    deviceposition,
+                                                                    expectedvalue=self.expectedvalue,
+                                                                    variance=self.variance,
+                                                                    frecuency=self.frecuency,
+                                                                    gain=1)
+                self.enqueuemeasure(measure)
 
+            # Check stop condition
             self.condition.acquire()
             flag = measures_monitor.flag_finish
             self.condition.notify()
@@ -53,6 +64,106 @@ class MeasuresGenerator (Thread):
             if flag:
                 break
 
-    def generaterssimeasure(self, generatorposition, deviceposition):
-        """This method generate a RSSI value measure, using a ranger, as measured by a device from another point."""
-        pass
+            time.sleep(self.timestep)
+
+    def enqueuemeasure(self, measure):
+        """This method enqueue a measure in its monitor"""
+        self.condition.acquire()
+        measures_monitor.enqueuemeasure(measure)
+        self.condition.notify()
+        self.condition.release()
+
+    def dequeueposition(self):
+        """This method dequeue a position from its monitor"""
+        self.feedbackcondition.acquire()
+        if not feedback_monitor.isempty():
+            position = feedback_monitor.dequeuepoint()
+        else:
+            position = feedback_monitor.initialposition
+        self.feedbackcondition.notify()
+        self.feedbackcondition.release()
+        return position
+
+
+# ------ END OF CLASS -------
+
+
+# Single measures generation methods
+def generaterssimeasurewithtwopositions(uuid,
+                                        sourceposition,
+                                        deviceposition,
+                                        frecuency=2440000000,
+                                        gain=1):
+    """This method generate measure with a RSSI value as seen by a device from another point."""
+    distance = calculatedistance(sourceposition, deviceposition)
+    rssi = calculaterssifordistance(distance, frecuency, gain)
+    return Measure(uuid, rssi=rssi)
+
+
+def generaterandomrssimeasurewithtwopositions(uuid,
+                                              sourceposition,
+                                              deviceposition,
+                                              expectedvalue=0,
+                                              variance=1.0,
+                                              frecuency=2440000000,
+                                              gain=1):
+    """This method generate measure with a RSSI value as seen by a device from another point."""
+    distance = calculatedistance(sourceposition, deviceposition)
+    shift = random.gauss(expectedvalue, variance)
+    rssi = calculaterssifordistance(distance, frecuency, gain)
+    return Measure(uuid, rssi=rssi + shift)
+
+
+def generaterssimeasurewithrssi(uuid, rssi):
+    """This method generate measure using a rssi value."""
+    return Measure(uuid, rssi=rssi)
+
+
+def generaterssimeasurewitharrivaltime(uuid, timearrival):
+    """This method generate measure using a signal's time arrival value."""
+    return Measure(uuid, arrivaltime=timearrival)
+
+
+# Path measures generation methods n
+def generaterssimeasureswithpath(uuid,
+                                 sourcepath,
+                                 deviceposition,
+                                 index,
+                                 frecuency=2440000000,
+                                 gain=1):
+    """This method generates measures with RSSI that together represent a moving source in certain path."""
+    return generaterssimeasurewithtwopositions(uuid,
+                                               sourcepath[index],
+                                               deviceposition,
+                                               frecuency=frecuency,
+                                               gain=gain)
+
+
+def generaterandomrssimeasureswithpath(uuid,
+                                       sourcepath,
+                                       deviceposition,
+                                       index,
+                                       expectedvalue=0,
+                                       variance=1.0,
+                                       frecuency=2440000000,
+                                       gain=1):
+    """This method generates random measures that together represent a moving source in certain path."""
+    return generaterandomrssimeasurewithtwopositions(uuid,
+                                                     sourcepath[index],
+                                                     deviceposition,
+                                                     expectedvalue=expectedvalue,
+                                                     variance=variance,
+                                                     frecuency=frecuency,
+                                                     gain=gain)
+
+
+def generatearrivaltimemeasurewithpath(uuid, sourcepath, timearrival):
+    """This method generates measures with arrival value that together represent a moving source in certain path."""
+    return generaterssimeasurewitharrivaltime(uuid, timearrival)
+
+
+# Feedback measures generation methods
+def generaterssimeasurewithfeedback():
+    """This function generate a measure"""
+
+

@@ -1,16 +1,15 @@
 """This class defines any radionavigation system that finds its positions or other devices one"""
 
-from math import asin, sqrt, pow, exp
+from math import sqrt, pow
 from miso_beacon_radiodet.position import Position
 from miso_beacon_radiodet.miso_beacon_radiodet_loc.rho_rho_system import RhoRhoSystem
 from miso_beacon_demo import measures_monitor
 from miso_beacon_demo import points_monitor
+from miso_beacon_demo import feedback_monitor
 
-from scipy.optimize import fsolve
 import time
 from threading import Thread
 import random
-from tkinter import *
 
 STATES = ["WAIT", "NO_LOCATED", "LOCATED", "NEW_DATA"]
 MAX_MEASURES = 10
@@ -31,6 +30,7 @@ class Radionavigator (Thread):
         self.inittime = time.time()
         self.condition = measures_monitor.getcondition()
         self.pointscondition = points_monitor.getcondition()
+        self.feedbackcondition = feedback_monitor.getcondition()
         self.measures = []
 
         self.state = STATES[0]
@@ -39,6 +39,11 @@ class Radionavigator (Thread):
             self.canvas = canvas
         else:
             self.canvas = None
+
+        self.feedbackcondition.acquire()
+        feedback_monitor.initialposition = self.currentposition
+        self.feedbackcondition.notify()
+        self.feedbackcondition.release()
 
     # Getters and setters
     def getcurrentposition(self):
@@ -109,6 +114,10 @@ class Radionavigator (Thread):
                         points_monitor.isarrived = False
                         self.pointscondition.notify()
                         self.pointscondition.release()
+                        self.feedbackcondition.acquire()
+                        feedback_monitor.isarrived = False
+                        self.feedbackcondition.notify()
+                        self.feedbackcondition.release()
                         self.state = "NEW_DATA"
             elif self.state == "NEW_DATA":
                 if self.getnewdata():
@@ -125,6 +134,10 @@ class Radionavigator (Thread):
                     points_monitor.isarrived = True
                     self.pointscondition.notify()
                     self.pointscondition.release()
+                    self.feedbackcondition.acquire()
+                    feedback_monitor.isarrived = True
+                    self.feedbackcondition.notify()
+                    self.feedbackcondition.release()
                     self.state = "WAIT"
                 else:
                     if self.isnewdata():
@@ -161,6 +174,10 @@ class Radionavigator (Thread):
         points_monitor.enqueuepoint(Position(x=self.currentposition.getx(), y=self.currentposition.gety()))
         self.pointscondition.notify()
         self.pointscondition.release()
+        self.feedbackcondition.acquire()
+        feedback_monitor.enqueuepoint(Position(x=self.currentposition.getx(), y=self.currentposition.gety()))
+        self.feedbackcondition.notify()
+        self.feedbackcondition.release()
         return True
 
     def isnewdata(self):
