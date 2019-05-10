@@ -4,61 +4,74 @@ from miso_beacon_radiodet.position import Position
 from miso_beacon_ai.ranging_functions import calculatedistance
 
 from scipy.optimize import fsolve
-from math import sqrt
+from math import pi, cos, sin, atan
 
 
-def generatelinepath(initialposition, targetposition, distancestep):
-    """This function generates a secuence of positions over a line"""
+def generatelinepath(initialposition, targetposition, steps):
+    """This function generates a secuence of positions over a line; it returns steps+1 positions, including initial and
+    target points"""
+
+    distancestep = calculatedistance(initialposition, targetposition) / steps
     if calculatedistance(initialposition, targetposition) == 0.0:
         return [initialposition]
     elif calculatedistance(initialposition, targetposition) <= distancestep:
         return [initialposition, targetposition]
 
-    # 1.- The line between both points is the first equation.
-    # 2.- The circle of radius distancestep and center in each point could be the second one, but both solutions of the
-    #     system may be too near and so the numeric solver could get the wrong one if previous step is given as clue.
-    # 3.- The circle of rising radius distancestep + each_number_of_steps * distance step and center in initial position
-    #     is the second equation.
-    # 4.- For the first iteration a prediction is needed anyway
+    # 1.- The line y = mx + n between both points is the first equation.
+    # 2.- If the domain of definition between the final point and the initial point is partitioned into segments of
+    #     equal length and the line's equation is evaluated in that set of points the path is obtained.
+    # 4.- The domain of definition could be either (yt - yi) or (xt - xi), due to its linearity.
 
-    xl1 = initialposition.getx()
-    yl1 = initialposition.gety()
-    xl2 = targetposition.getx()
-    yl2 = targetposition.gety()
+    xi = initialposition.getx()
+    yi = initialposition.gety()
+    xt = targetposition.getx()
+    yt = targetposition.gety()
 
-    prediction = (xl1, yl1)
+    m = (yt - yi) / (xt - xi)
+    n = -xi * m + yi
 
-    if xl2 > xl1 and yl2 > yl1:
-        prediction = (xl1 + distancestep/2, yl1 + distancestep/2)
-    elif xl2 > xl1 and yl2 < yl1:
-        prediction = (xl1 + distancestep/2, yl1 - distancestep/2)
-    elif xl2 < xl1 and yl2 > yl1:
-        prediction = (xl1 - distancestep/2, yl1 + distancestep/2)
-    elif xl2 < xl1 and yl2 < yl1:
-        prediction = (xl1 - distancestep/2, yl1 - distancestep/2)
-
-    currentposition = initialposition
     path = []
-    path.append(initialposition)
-    stepindex = 1
-    while not calculatedistance(currentposition, targetposition) <= distancestep:
-        print(calculatedistance(currentposition, targetposition))
-        print(stepindex * distancestep)
-        xc = initialposition.getx()
-        yc = initialposition.gety()
+    for i in range(steps):
+        x = xi + i * (xt - xi)/steps
+        position = Position(x=x, y=m*x+n)
+        print(position)
+        path.append(position)
 
-        # Solve the determination equations
-        def equations(p):
-            x, y = p
-            return x * (yl2 - yl1) - y * (xl2 - xl1) - xl1 * (yl2-yl1) + yl1 * (xl2-xl1), \
-                   (x - xc) ** 2 + (y - yc) ** 2 - (stepindex * distancestep) ** 2
-        x, y = fsolve(equations, prediction)
+    path.append(targetposition)
+
+    return path
+
+
+def generatecirclepath(initialposition, centerposition, stepsperrevolution, clockwise=True):
+    """This function generates a secuence of positions over a line"""
+    radius = calculatedistance(initialposition, centerposition)
+    if radius <= 1.0:
+        return [initialposition]
+    if stepsperrevolution < 2:
+        return [initialposition]
+
+    # 1.- The center point defines a vector.
+    # 2.- The (x cos θ, y sen θ) vector rotates on it clockwise or counter clockwise from a relative angle that
+    #     determines both initial point and center point
+    # 3.- The relative angle is arctan (yi-yc)/(xi-xc).
+
+    xi = initialposition.getx()
+    yi = initialposition.gety()
+    xc = centerposition.getx()
+    yc = centerposition.gety()
+
+    anglestep = 2*pi/stepsperrevolution
+    offsetangle = atan((yi - yc) / (xi - xc))
+
+    path = []
+    for i in range(stepsperrevolution):
+        if clockwise:
+            x = radius * cos(-i * anglestep + offsetangle) + xc
+            y = radius * sin(-i * anglestep + offsetangle) + yc
+        else:
+            x = radius * cos(i * anglestep + offsetangle) + xc
+            y = radius * sin(i * anglestep + offsetangle) + yc
 
         position = Position(x=x, y=y)
         path.append(position)
-        currentposition = position
-        stepindex = stepindex + 1
-        prediction = (x, y)
-        print(currentposition)
-    path.append(targetposition)
     return path
