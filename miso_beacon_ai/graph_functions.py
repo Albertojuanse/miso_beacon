@@ -4,9 +4,31 @@ import heapq
 import functools
 
 
-def getadjacencymatrix(vertices, edges):
+def getadjacencymatrix(vertices):
     """This function returns the adjacency matrix of a graph given its vertices and edges"""
-    pass
+    # Initialize matrix
+    matrix = []
+    for i in range(len(vertices)):
+        rowlist = []
+        for j in range(len(vertices)):
+            rowlist.append(0)
+        matrix.append(rowlist)
+
+    # Each Vertex object has a list of Edges object, which are the ones connected to it,
+    # and every of those Edge object has a list of connected Vertex.
+
+    # For every vertex in the graph...
+    for i, graphvertex in enumerate(vertices):
+        # ...check in its edges...
+        for edge in graphvertex.geteges():
+            # ...the set of vertices of every of those edges...
+            for edgevertex in edge.getvertices():
+                # ...and check if every vertex is equal to this edge's vertex.
+                for j, graphvertex2 in enumerate(vertices):
+                    if graphvertex == graphvertex2:
+                        matrix[i][j] += 1
+
+    return matrix
 
 
 def convexhullgrahamscan(vertices):

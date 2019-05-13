@@ -26,11 +26,11 @@ class Vertex:
         """Setter of vertex's position"""
         self.position = position
 
-    def getweight(self):
+    def getedges(self):
         """Getter of vertex's edges"""
         return self.edges
 
-    def setweight(self, edges):
+    def setedges(self, edges):
         """Setter of vertex's weight"""
         self.edges = edges
 

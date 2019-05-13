@@ -1,7 +1,7 @@
 """This functions are used for creating a graph's model"""
 
 from miso_beacon_model.miso_beacon_model_meta.graph_metamodel import GRAPH_METAMODEL
-from miso_beacon_ai.graph_functions import convexhullgrahamscan
+from miso_beacon_ai.graph_functions import convexhullgrahamscan, getadjacencymatrix
 from miso_beacon_ai.ranging_functions import calculatedistance
 
 from math import sqrt, pow
@@ -16,7 +16,8 @@ def createmodel(name, locations, metamodel=GRAPH_METAMODEL):
     edges, convexhull, descartedvertices = generateedges(vertices, metamodel)
 
     # Complete information of components
-    vertices, edges = generatecompletegraph(vertices, edges)
+    vertices, edges, adjacencymatrix = generatecompletegraph(vertices, edges)
+    model.append(adjacencymatrix)
 
     # Compose the class object Model
     for comp in vertices:
@@ -69,7 +70,10 @@ def generateedges(vertices, metamodel):
 
 def generatecompletegraph(vertices, edges):
     """This function completes the vertices and edges sets with the information needed"""
-    return vertices, edges
+    adjacencymatrix = getadjacencymatrix(vertices)
+    for i, vertex in vertices:
+        vertex.setmatrix(adjacencymatrix[i])
+    return vertices, edges, adjacencymatrix
 
 
 def generateclassdic(name, vertices, discardedvertices, edges):
