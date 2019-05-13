@@ -41,3 +41,12 @@ class Edge:
     def setisdirected(self, isdirected):
         """Setter of isDirected property of edge"""
         self.isDirected = isdirected
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.vertices == other.vertices() and self.weight == other.getweight()
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

@@ -5,7 +5,7 @@ CANVAS_WIDTH = 1000
 CANVAS_HEIGHT = 700
 
 
-class MyCanvas():
+class MyCanvas:
 
     def __init__(self):
         super().__init__()

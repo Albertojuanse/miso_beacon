@@ -20,12 +20,14 @@ def getadjacencymatrix(vertices):
     # For every vertex in the graph...
     for i, graphvertex in enumerate(vertices):
         # ...check in its edges...
-        for edge in graphvertex.geteges():
+        for edge in graphvertex.getedges():
             # ...the set of vertices of every of those edges...
             for edgevertex in edge.getvertices():
                 # ...and check if every vertex is equal to this edge's vertex.
                 for j, graphvertex2 in enumerate(vertices):
+                    print("A ver")
                     if graphvertex == graphvertex2:
+                        print("Si")
                         matrix[i][j] += 1
 
     return matrix

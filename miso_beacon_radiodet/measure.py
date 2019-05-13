@@ -1,11 +1,9 @@
 """This class defines a probe's measure"""
 
-from math import sqrt, pow, pi, sin, cos, acos, atan
-
 
 class Measure:
 
-    def __init__(self, uuid, arrivaltime=0, rssi=0):
+    def __init__(self, uuid, arrivaltime=None, rssi=None):
         """Constructor"""
         self.uuid = uuid
         self.arrivaltime = arrivaltime
@@ -31,3 +29,24 @@ class Measure:
 
     def setrssi(self, rssi):
         self.rssi = rssi
+
+    def __str__(self):
+        if self.rssi and not self.arrivaltime:
+            return "[" + str(self.uuid) + "] measure: rssi value " + str(self.rssi)
+        if not self.rssi and self.arrivaltime:
+            return "[" + str(self.uuid) + "] measure: time arrival value " + str(self.arrivaltime)
+        if self.rssi and self.arrivaltime:
+            string = "[" + str(self.uuid) + "] measure: time arrival value " +\
+                     str(self.arrivaltime) + " and rssi value " + str(self.rssi)
+            return string
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.arrivaltime == other.getarrivaltime() \
+                   and self.rssi == other.getrssi() \
+                   and self.uuid == other.getuuid()
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

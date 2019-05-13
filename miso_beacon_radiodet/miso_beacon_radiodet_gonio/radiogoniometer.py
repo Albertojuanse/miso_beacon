@@ -2,7 +2,7 @@
 
 from math import asin, sqrt, pow
 
-c = 299792458
+C = 299792458
 
 
 class Radiogoniometer:
@@ -39,7 +39,7 @@ class Radiogoniometer:
                             pow((pos1.getz() - pos2.getz()), 2))
             timestep = time2 - time1
             if not distance == 0:
-                angle = asin((c * timestep) / distance)
+                angle = asin((C * timestep) / distance)
             else:
                 angle = None
         return angle

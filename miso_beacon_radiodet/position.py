@@ -169,3 +169,12 @@ class Position:
 
     def __str__(self):
         return "(" + str(self.x) + ", " + str(self.y) + ", " + str(self.z) + ")"
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.x == other.getx() and self.y == other.gety() and self.z == other.getz()
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

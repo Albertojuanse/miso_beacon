@@ -41,3 +41,12 @@ class Vertex:
     def setmatrix(self, matrix):
         """Setter of vertex's matrix"""
         self.matrix = matrix
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.position == other.getposition() and self.name == other.getname()
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

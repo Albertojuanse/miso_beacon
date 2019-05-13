@@ -70,8 +70,17 @@ def generateedges(vertices, metamodel):
 
 def generatecompletegraph(vertices, edges):
     """This function completes the vertices and edges sets with the information needed"""
+    # Retrieve information from edges connections for complete vertices
+    for edge in edges:
+        verticesinedge = edge.getvertices()
+        for vertex in vertices:
+            if vertex == verticesinedge:
+                edgesinvertex = vertex.getedges()
+                edgesinvertex.append(edge)
+
+    # Calculate adjacency matrix
     adjacencymatrix = getadjacencymatrix(vertices)
-    for i, vertex in vertices:
+    for i, vertex in enumerate(vertices):
         vertex.setmatrix(adjacencymatrix[i])
     return vertices, edges, adjacencymatrix
 

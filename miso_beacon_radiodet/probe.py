@@ -1,7 +1,5 @@
 """This class defines a radiogoniometer's probe, its position and measures"""
 
-from math import sqrt, pow, pi, sin, cos, acos, atan
-
 
 class Probe:
 

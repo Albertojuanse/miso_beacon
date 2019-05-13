@@ -6,6 +6,8 @@ from miso_beacon_radiodet.miso_beacon_radiodet_nav.radiolocator import Radioloca
 from miso_beacon_demo import points_monitor
 from miso_beacon_model import model_generator
 
+import time
+
 POSITIONS = [
     [51, 49],
     [49, 51]
@@ -16,8 +18,20 @@ def main():
     """Main execution"""
     """
     for pos in POSITIONS:
-        generator1 = MeasuresGenerator(uuid=1, mode="RADIOLOCATOR", rssi=pos[0])
-        generator2 = MeasuresGenerator(uuid=2, mode="RADIOLOCATOR", rssi=pos[1])
+        generator1 = MeasuresGenerator(
+            timestep=1,
+            uuid=1,
+            mode="RADIOLOCATOR",
+            randomparameters=(0, 1),
+            frecuency=2440000000,
+            gain=1)
+        generator2 = MeasuresGenerator(
+            timestep=1,
+            uuid=1,
+            mode="RADIOLOCATOR",
+            randomparameters=(0, 1),
+            frecuency=2440000000,
+            gain=1)
 
         radiolocator = Radiolocator(
             [Position(x=0, y=100), Position(x=100, y=100)],
@@ -49,7 +63,15 @@ def main():
                         (6, Position(x=50, y=60))
                         ]
 
-    classmodel, dicmodel = model_generator.createmodel("MODELO_NOMBRE", locatedpositions)
+    name = "id" + \
+           str(time.localtime().tm_year) + \
+           str(time.localtime().tm_mon) + \
+           str(time.localtime().tm_mday) + \
+           str(time.localtime().tm_hour) + \
+           str(time.localtime().tm_min) + \
+           str(time.localtime().tm_sec)
+
+    classmodel, dicmodel = model_generator.createmodel(name, locatedpositions)
 
     print(classmodel)
     print(dicmodel)
