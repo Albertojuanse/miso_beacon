@@ -37,6 +37,8 @@ def main():
             [Position(x=0, y=100), Position(x=100, y=100)],
             "CONCURRENT",
             "RHO_RHO",
+            2440000000,
+            1
             targetpositionprediction=Position(x=50.0, y=50.0)
         )
 

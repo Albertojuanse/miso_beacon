@@ -9,12 +9,14 @@ from scipy.optimize import fsolve
 
 class RhoRhoSystem:
 
-    def __init__(self, measures=None, ):
+    def __init__(self, frecuency, gain, measures=None):
         """Constructor"""
         if measures:
             self.measures = measures
         else:
             self.measures = []
+        self.frecuency = frecuency
+        self.gain = gain
         self.uuid = []
         self.classifiedmeasures = []
         self.averagedmeasures = []
@@ -86,8 +88,9 @@ class RhoRhoSystem:
             y2 = reference2.gety()
             rssi1 = self.averagedmeasures[0][1]
             rssi2 = self.averagedmeasures[1][1]
-            dis1 = RSSIRanger.rangedistance(rssi1)
-            dis2 = RSSIRanger.rangedistance(rssi2)
+            ranger = RSSIRanger(self.frecuency, gain=self.gain)
+            dis1 = ranger.rangedistance(rssi1)
+            dis2 = ranger.rangedistance(rssi2)
 
             # Solve the determination equations
             def equations(p):

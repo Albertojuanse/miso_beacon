@@ -24,7 +24,8 @@ PRECISION = 7
 
 class Radiolocator (Thread):
 
-    def __init__(self, positions, measure_mode, system_mode, targetpositionprediction=Position(x=1.0, y=1.0)):
+    def __init__(self, positions, measure_mode, system_mode, frecuency, gain,
+                 targetpositionprediction=Position(x=1.0, y=1.0)):
         """Constructor"""
         super().__init__()
 
@@ -93,7 +94,7 @@ class Radiolocator (Thread):
 
             if self.system_mode == "RHO_RHO":
                 self.inittime = time.time()
-                self.system = RhoRhoSystem()
+                self.system = RhoRhoSystem(frecuency, gain)
 
                 while not self.idle:
                     print(self.state)
