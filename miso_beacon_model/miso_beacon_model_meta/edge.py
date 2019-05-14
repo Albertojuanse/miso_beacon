@@ -8,7 +8,7 @@ class Edge:
         self.weight = weight
         self.vertices = vertices
         self.matrix = matrix
-        self.isDirected = isdirected
+        self.isdirected = isdirected
 
     def getweight(self):
         """Getter of edge's weight"""
@@ -36,11 +36,11 @@ class Edge:
 
     def getisdirected(self):
         """Getter of isDirected property of edge"""
-        return self.isDirected
+        return self.isdirected
 
     def setisdirected(self, isdirected):
         """Setter of isDirected property of edge"""
-        self.isDirected = isdirected
+        self.isdirected = isdirected
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):

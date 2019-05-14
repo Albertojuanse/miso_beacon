@@ -45,7 +45,7 @@ def generateedges(vertices, metamodel):
     convexhull, vertices, discardedvertices = convexhullgrahamscan(vertices)
     if not discardedvertices == []:
         for vertex in discardedvertices:
-            print("DESCARTED_VERTEX:", vertex.getposition().getx(), vertex.getposition().gety())
+            print("DESCARTED_VERTEX:", str(vertex.getposition()))
     else:
         print("NOT DESCARTED VERTICES")
 
@@ -72,14 +72,13 @@ def generatecompletegraph(vertices, edges):
     """This function completes the vertices and edges sets with the information needed"""
     # Retrieve information from edges connections for complete vertices
     for edge in edges:
-        verticesinedge = edge.getvertices()
-        for vertex in vertices:
-            if vertex == verticesinedge:
-                edgesinvertex = vertex.getedges()
-                edgesinvertex.append(edge)
+        for vertexinedge in edge.getvertices():
+            for vertex in vertices:
+                if vertex == vertexinedge:
+                    vertex.getedges().append(edge)
 
     # Calculate adjacency matrix
-    adjacencymatrix = getadjacencymatrix(vertices)
+    adjacencymatrix = getadjacencymatrix(vertices, edges)
     for i, vertex in enumerate(vertices):
         vertex.setmatrix(adjacencymatrix[i])
     return vertices, edges, adjacencymatrix

@@ -3,8 +3,10 @@
 import heapq
 import functools
 
+from miso_beacon_model.miso_beacon_model_meta.edge import Edge
 
-def getadjacencymatrix(vertices):
+
+def getadjacencymatrix(vertices, edges):
     """This function returns the adjacency matrix of a graph given its vertices and edges"""
     # Initialize matrix
     matrix = []
@@ -17,19 +19,33 @@ def getadjacencymatrix(vertices):
     # Each Vertex object has a list of Edges object, which are the ones connected to it,
     # and every of those Edge object has a list of connected Vertex.
 
-    # For every vertex in the graph...
-    for i, graphvertex in enumerate(vertices):
-        # ...check in its edges...
-        for edge in graphvertex.getedges():
-            # ...the set of vertices of every of those edges...
-            for edgevertex in edge.getvertices():
-                # ...and check if every vertex is equal to this edge's vertex.
-                for j, graphvertex2 in enumerate(vertices):
-                    print("A ver")
-                    if graphvertex == graphvertex2:
-                        print("Si")
-                        matrix[i][j] += 1
+    edges.append(Edge(0, [vertices[0], vertices[0]], [], False))
 
+    # For every edge in the graph...
+    for edge in edges:
+        # ...take the set of the vertices that connects and for every one of them...
+        for vertexinedge1 in edge.getvertices():
+            for vertexinedge2 in edge.getvertices():
+                # ...if the edge is not directed...
+                if not edge.getisdirected():
+                    # get indices for the vertices in the matrix
+                    for i, vertex1 in enumerate(vertices):
+                        for j, vertex2 in enumerate(vertices):
+                            # ...and check if edge's vertices are equal to this ones.
+                            if vertexinedge1 == vertex1 \
+                                    and vertexinedge2 == vertex2 \
+                                    and not vertex1 == vertex2:
+                                matrix[i][j] += 1
+                            if vertex1 == vertex2:
+                                pass
+                                # TODO evaluate self-edge case
+                else:  # ...but if not...
+                    # get indices for the vertices in the matrix
+                    for i, vertex1 in enumerate(vertices):
+                        for j, vertex2 in enumerate(vertices):
+                            # ...and check if edge's vertices are equal to this ones.
+                            if vertexinedge1 == vertex1 and vertexinedge2 == vertex2:
+                                matrix[i][j] += 1
     return matrix
 
 
