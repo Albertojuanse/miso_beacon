@@ -7,6 +7,7 @@ from miso_beacon_radiodet.miso_beacon_radiodet_loc.rho_theta_system import RhoTh
 from miso_beacon_radiodet.miso_beacon_radiodet_loc.theta_theta_system import ThetaThetaSystem
 from miso_beacon_ai.ranging_functions import calculatedistance
 from miso_beacon_demo import measures_monitor
+from miso_beacon_demo import plotting_monitor
 from miso_beacon_demo import points_monitor
 
 import time
@@ -37,6 +38,8 @@ class Radiolocator (Thread):
         self.measure_mode = measure_mode
         self.system_mode = system_mode
         self.positions = positions
+        self.frecuency = frecuency
+        self.gain = gain
         if measure_mode == "CONCURRENT":
             if system_mode == "RHO_RHO":
                 self.ranges = []
@@ -94,7 +97,7 @@ class Radiolocator (Thread):
 
             if self.system_mode == "RHO_RHO":
                 self.inittime = time.time()
-                self.system = RhoRhoSystem(frecuency, gain)
+                self.system = RhoRhoSystem(self.frecuency, self.gain)
 
                 while not self.idle:
                     print(self.state)
@@ -113,6 +116,8 @@ class Radiolocator (Thread):
                         if self.isprecised():
                             self.idle = True
                             self.state = "IDLE"
+                            # Results for plotting
+
                         else:
                             if self.isnewdata():
                                 self.state = "NEW_DATA"
