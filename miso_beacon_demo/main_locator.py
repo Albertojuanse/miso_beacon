@@ -16,7 +16,7 @@ POSITIONS = [
 
 def main():
     """Main execution"""
-    """
+
     for pos in POSITIONS:
         generator1 = MeasuresGenerator(
             timestep=1,
@@ -24,21 +24,23 @@ def main():
             mode="RADIOLOCATOR",
             randomparameters=(0, 1),
             frecuency=2440000000,
-            gain=1)
+            gain=1,
+            targetpositionprediction=Position(x=50.0, y=50.0))
         generator2 = MeasuresGenerator(
             timestep=1,
-            uuid=1,
+            uuid=2,
             mode="RADIOLOCATOR",
             randomparameters=(0, 1),
             frecuency=2440000000,
-            gain=1)
+            gain=1,
+            targetpositionprediction=Position(x=50.0, y=50.0))
 
         radiolocator = Radiolocator(
             [Position(x=0, y=100), Position(x=100, y=100)],
             "CONCURRENT",
             "RHO_RHO",
             2440000000,
-            1
+            1,
             targetpositionprediction=Position(x=50.0, y=50.0)
         )
 
@@ -64,7 +66,7 @@ def main():
                         (5, Position(x=10, y=100)),
                         (6, Position(x=50, y=60))
                         ]
-
+    """
     name = "id" + \
            str(time.localtime().tm_year) + \
            str(time.localtime().tm_mon) + \

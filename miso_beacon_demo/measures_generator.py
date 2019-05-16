@@ -5,6 +5,7 @@ import random
 import time
 
 from miso_beacon_radiodet.measure import Measure
+from miso_beacon_radiodet.position import Position
 from miso_beacon_ai.ranging_functions import calculatedistance, calculaterssifordistance
 from miso_beacon_demo import measures_monitor
 from miso_beacon_demo import feedback_monitor
@@ -18,7 +19,9 @@ class MeasuresGenerator (Thread):
                  mode="RADIONAVIGATOR",
                  randomparameters=(0, 1),
                  frecuency=2440000000,
-                 gain=1):
+                 gain=1,
+                 targetpositionprediction = Position(x=50.0, y=50.0),
+                 sourceposition = Position(x=50.0, y=50.0)):
         """Constructor"""
         super().__init__()
         self.timestep = timestep
@@ -30,6 +33,8 @@ class MeasuresGenerator (Thread):
         self.gain = gain
         self.condition = measures_monitor.getcondition()
         self.feedbackcondition = feedback_monitor.getcondition()
+        self.targetpositionprediction = targetpositionprediction
+        self.sourceposition = sourceposition
 
     def run(self):
         """Overwrite run method"""
@@ -37,15 +42,20 @@ class MeasuresGenerator (Thread):
         while True:
             if self.mode == "RADIOLOCATOR":
                 # Static source and static device
-                sourceposition = sourcepositions[0]
-                deviceposition = devicepositions[0]
+
+                self.feedbackcondition.acquire()
+                deviceposition = feedback_monitor.dequeuepoint()
+                self.feedbackcondition.notify()
+                self.feedbackcondition.release()
+                if not deviceposition:
+                    deviceposition = self.targetpositionprediction
                 measure = generaterandomrssimeasurewithtwopositions(self.uuid,
-                                                                    sourceposition,
+                                                                    self.sourceposition,
                                                                     deviceposition)
                 self.enqueuemeasure(measure)
             elif self.mode == "RADIONAVIGATOR":
                 # Static source but mobile device
-                sourceposition = sourcepositions[0]
+                sourceposition = self.sourceposition
                 deviceposition = self.dequeueposition()
                 measure = generaterandomrssimeasurewithtwopositions(self.uuid,
                                                                     sourceposition,
