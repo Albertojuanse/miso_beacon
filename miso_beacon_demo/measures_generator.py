@@ -7,19 +7,12 @@ import time
 from miso_beacon_radiodet.measure import Measure
 from miso_beacon_ai.ranging_functions import calculatedistance, calculaterssifordistance
 from miso_beacon_demo import feedback_monitor
-from miso_beacon_demo import measures_monitor
-from miso_beacon_demo import feedback_monitor
 
+MODES = ["RADIONAVIGATOR", "RADIOLOCATOR"]
 
 class MeasuresGenerator (Thread):
 
-    def __init__(self,
-                 timestep,
-                 uuid,
-                 mode,
-                 randomparameters=(0, 1),
-                 frecuency,
-                 gain):
+    def __init__(self, timestep, uuid, mode, randomparameters, frecuency, gain):
         """Constructor"""
         super().__init__()
         self.timestep = timestep

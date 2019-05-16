@@ -1,4 +1,4 @@
-"""This measures monitor is access by radionavigation devices and final modelling tools"""
+"""This feedback monitor is access by devices and measures generators"""
 
 from threading import Condition
 from miso_beacon_radiodet.position import Position
@@ -6,7 +6,6 @@ from miso_beacon_radiodet.position import Position
 points = []
 condition = Condition()
 
-isarrived = False
 initialposition = Position(x=0, y=0)
 
 
