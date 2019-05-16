@@ -17,7 +17,9 @@ POSITIONS = [
 def main():
     """Main execution"""
 
-    for pos in POSITIONS:
+    locatedpositions = []
+
+    for i, pos in enumerate(POSITIONS):
         generator1 = MeasuresGenerator(
             timestep=1,
             uuid=1,
@@ -51,11 +53,8 @@ def main():
         generator1.join()
         generator2.join()
 
-    locatedpositions = []
-    index = 0
-    while not points_monitor.isempty():
-        locatedpositions.append((index, points_monitor.dequeuepoint()))
-        index = index + 1
+        locatedpositions.append((i, radiolocator.getcalculatedpositions()))
+
     """
 
     locatedpositions = [(0, Position(x=10, y=10)),

@@ -10,6 +10,42 @@ isarrived = False
 initialposition = Position(x=0, y=0)
 
 
+# Common functions
+def getcondition():
+    """This method is the concurrent manage condition getter"""
+    return condition
+
+
+# Radiolocator feedback functions
+radiolocatoridle = False
+
+
+def isradiolocatoridle():
+    """The getter of radiolocator's 'idle' flag"""
+    return radiolocatoridle
+
+
+def setradiolocatoridle(flag):
+    """The getter of radiolocator's 'idle' flag"""
+    global radiolocatoridle
+    radiolocatoridle = flag
+
+
+# Radionavigator feedback functions
+isarrived = False
+radionavegatoridle = False
+
+
+def isradionavegatoridle():
+    """The getter of radionavegator's 'idle' flag"""
+    return radionavegatoridle
+
+
+def setradionavegatoridle(flag):
+    """The getter of radionavegator's 'idle' flag"""
+    global radionavegatoridle
+    radionavegatoridle = flag
+
 def isempty():
     return len(points) == 0
 
@@ -27,10 +63,6 @@ def dequeuepoint():
 
 def size():
     return len(points)
-
-
-def getcondition():
-    return condition
 
 
 def setisarrived(boolean):

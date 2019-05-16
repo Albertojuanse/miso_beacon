@@ -5,8 +5,8 @@ import random
 import time
 
 from miso_beacon_radiodet.measure import Measure
-from miso_beacon_radiodet.position import Position
 from miso_beacon_ai.ranging_functions import calculatedistance, calculaterssifordistance
+from miso_beacon_demo import feedback_monitor
 from miso_beacon_demo import measures_monitor
 from miso_beacon_demo import feedback_monitor
 
@@ -14,14 +14,12 @@ from miso_beacon_demo import feedback_monitor
 class MeasuresGenerator (Thread):
 
     def __init__(self,
-                 timestep=1,
-                 uuid=0,
-                 mode="RADIONAVIGATOR",
+                 timestep,
+                 uuid,
+                 mode,
                  randomparameters=(0, 1),
-                 frecuency=2440000000,
-                 gain=1,
-                 targetpositionprediction = Position(x=50.0, y=50.0),
-                 sourceposition = Position(x=50.0, y=50.0)):
+                 frecuency,
+                 gain):
         """Constructor"""
         super().__init__()
         self.timestep = timestep
@@ -39,7 +37,8 @@ class MeasuresGenerator (Thread):
     def run(self):
         """Overwrite run method"""
         time.sleep(random.uniform(0, 1))
-        while True:
+        run = True
+        while run:
             if self.mode == "RADIOLOCATOR":
                 # Static source and static device
 
@@ -53,6 +52,15 @@ class MeasuresGenerator (Thread):
                                                                     self.sourceposition,
                                                                     deviceposition)
                 self.enqueuemeasure(measure)
+
+                # Check stop condition
+                feedback_monitor.getcondition().acquire()
+                flag = feedback_monitor.isradiolocatoridle()
+                feedback_monitor.getcondition().notify()
+                feedback_monitor.getcondition().release()
+                if flag:
+                    run = False
+
             elif self.mode == "RADIONAVIGATOR":
                 # Static source but mobile device
                 sourceposition = self.sourceposition
@@ -66,13 +74,13 @@ class MeasuresGenerator (Thread):
                                                                     gain=1)
                 self.enqueuemeasure(measure)
 
-            # Check stop condition
-            self.condition.acquire()
-            flag = measures_monitor.flag_finish
-            self.condition.notify()
-            self.condition.release()
-            if flag:
-                break
+                # Check stop condition
+                feedback_monitor.getcondition().acquire()
+                flag = feedback_monitor.isradionavegatoridle()
+                feedback_monitor.getcondition().notify()
+                feedback_monitor.getcondition().release()
+                if flag:
+                    run = False
 
             time.sleep(self.timestep)
 

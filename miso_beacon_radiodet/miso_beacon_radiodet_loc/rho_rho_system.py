@@ -73,8 +73,8 @@ class RhoRhoSystem:
                 sum = sum + measure.getarrivaltime()
                 # Impossible to do with any absolute temporal reference
 
-    def getpositionusingrssiranging(self, reference1, reference2, prediction=(1, 1)):
-        """This method performs the calculate of position using time references"""
+    def getpositionusingrssiranging(self, reference1, reference2, prediction):
+        """This method performs the calculate of position using rssi values"""
         position = Position(x=0.0, y=0.0)
 
         # Classify the input measures and averaging
@@ -97,7 +97,7 @@ class RhoRhoSystem:
                 x, y = p
                 return (x - x1)**2 + (y - y1)**2 - dis1**2, (x - x2)**2 + (y - y2)**2 - dis2**2
 
-            x, y = fsolve(equations, prediction)
+            x, y = fsolve(equations, (prediction.getx() + 1, prediction.gety() + 1))
 
             position.setx(x)
             position.sety(y)
