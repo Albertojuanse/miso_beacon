@@ -1,4 +1,6 @@
-"""This class defines a radiogoniometer's probe, its position and measures"""
+"""This class defines any system probe, its position and measures; implements a monitor"""
+
+from threading import Condition
 
 
 class Probe:
@@ -8,6 +10,11 @@ class Probe:
         self.position = position
         self.measures = []
 
+        # Monitor's condition
+        self.condition = Condition()
+
+        self.flag_finish = False
+
     # Position getter and setter
     def getposition(self):
         return self.position
@@ -15,23 +22,29 @@ class Probe:
     def setposition(self, position):
         self.position = position
 
-    # Measures stack management
-    def nomeasures(self):
+    # Measures queue management
+    def isempty(self):
         """[!!] This method returns TRUE if the measures stack is empty"""
-        return self.measures == []
+        return len(self.measures) == 0
 
-    def addmeasure(self, item):
-        """This method adds a measure to the stack"""
-        self.measures.append(item)
+    def enqueuemeasure(self, measure):
+        """This method adds a measure to the queue"""
+        self.measures.insert(0, measure)
 
-    def popmeasure(self):
-        """This method pops a measure from the stack"""
-        return self.measures.pop()
+    def dequeuemeasure(self):
+        """This method pops a measure from the queue"""
+        if len(self.measures) > 0:
+            return self.measures.pop()
+        else:
+            return None
 
     def getmeasure(self):
-        """This method inspects a measure from the stack"""
+        """This method inspects a measure from the queue"""
         return self.measures[len(self.measures) - 1]
 
     def size(self):
-        """This method returns measures stack size"""
+        """This method returns measures queue size"""
         return len(self.measures)
+
+    def getcondition(self):
+        return self.condition
