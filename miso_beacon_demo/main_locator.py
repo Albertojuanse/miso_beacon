@@ -4,28 +4,33 @@ from miso_beacon_radiodet.position import Position
 from miso_beacon_radiodet.probe import Probe
 from miso_beacon_demo.measures_generator import MeasuresGenerator
 from miso_beacon_radiodet.miso_beacon_radiodet_nav.radiolocator import Radiolocator
-from miso_beacon_demo import points_monitor
 from miso_beacon_model import model_generator
 
 import time
 
 # Demo configuration parameters
-PROBES_POSITIONS = [
-    Position(x=0.0, y=0.0),
-    Position(x=0.0, y=100.0),
+TARGET_POSITIONS = [  # Number of calculations
+    Position(x=60.0, y=20.0),
+    Position(x=60.0, y=60.0),
+    Position(x=20.0, y=60.0),
+    Position(x=20.0, y=20.0),
 ]
-TARGET_POSITIONS = [
-    Position(x=50.0, y=50.0),
-]
-C = 299792458 # Speed of light
+C = 299792458  # Speed of light
 F = 2440000000  # 2400 - 2480 MHz
 G = 1  # 2.16 dBi
 
 # Measure generators configuration parameters
+PROBES_POSITIONS = [  # Positions of device probes
+    Position(x=0.0, y=0.0),
+    Position(x=0.0, y=100.0),
+]
 MEASURE_TIMESTEP = 1
-UUID = [ # Same length than PROBES_POSITIONS or greater
+UUID = [  # Same length than PROBES_POSITIONS or greater
     10,
-    20
+    20,
+    30,
+    40,
+    50,
 ]
 GENERATOR_MODES = ["RADIONAVIGATOR", "RADIOLOCATOR"]
 GAUSSIAN_NOISE_STATISTICS = (0, 1) # Average and standard deviation for gaussian noise
@@ -46,24 +51,19 @@ def main():
         probes.append(Probe(pos))
 
     for i, pos in enumerate(TARGET_POSITIONS):
-
-        generator1 = MeasuresGenerator(
-            MEASURE_TIMESTEP,
-            UUID[i],
-            GENERATOR_MODES[1],
-            GAUSSIAN_NOISE_STATISTICS,
-            F,
-            G
-        )
-
-        generator2 = MeasuresGenerator(
-            MEASURE_TIMESTEP,
-            UUID[i] + 1,
-            GENERATOR_MODES[1],
-            GAUSSIAN_NOISE_STATISTICS,
-            F,
-            G
-        )
+        generators = []
+        for j, probe in enumerate(probes):
+            generator = MeasuresGenerator(
+                MEASURE_TIMESTEP,
+                UUID[j],
+                GENERATOR_MODES[1],
+                GAUSSIAN_NOISE_STATISTICS,
+                F,
+                G,
+                pos,
+                [probe]
+            )
+            generators.append(generator)
 
         radiolocator = Radiolocator(
             probes,
@@ -74,12 +74,12 @@ def main():
             Position(x=pos.getx() + 1, y=pos.gety() + 1)
         )
 
-        generator1.start()
-        generator2.start()
+        for generator in generators:
+            generator.start()
         radiolocator.start()
         radiolocator.join()
-        generator1.join()
-        generator2.join()
+        for generator in generators:
+            generator.join()
 
         locatedpositions.append((i, radiolocator.getcalculatedpositions()))
 

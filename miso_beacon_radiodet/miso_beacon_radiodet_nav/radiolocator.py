@@ -22,7 +22,7 @@ PRECISION = 7
 
 class Radiolocator (Thread):
 
-    def __init__(self, probes, measure_mode, system_mode, frecuency, gain, targetpositionprediction):
+    def __init__(self, probes, measure_mode, system_mode, frequency, gain, targetpositionprediction):
         """Constructor"""
         super().__init__()
 
@@ -36,7 +36,7 @@ class Radiolocator (Thread):
         self.system_mode = system_mode
 
         # Frecuency and gain are needed for propagation phenomena
-        self.frecuency = frecuency
+        self.frequency = frequency
         self.gain = gain
 
         # A target prediction is needed for numerical methods
@@ -55,14 +55,14 @@ class Radiolocator (Thread):
 
         if measure_mode == "CONCURRENT":
             if system_mode == "RHO_RHO":
-                self.system = RhoRhoSystem(self.frecuency, self.gain)
+                self.system = RhoRhoSystem(self.frequency, self.gain)
             elif system_mode == "RHO_THETA":
                 pass
             elif system_mode == "THETA_THETA":
                 pass
         elif measure_mode == "TEMPORAL":
             if system_mode == "RHO_RHO":
-                self.system = RhoRhoSystem(self.frecuency, self.gain)
+                self.system = RhoRhoSystem(self.frequency, self.gain)
             elif system_mode == "RHO_THETA":
                 pass
             elif system_mode == "THETA_THETA":
@@ -95,13 +95,13 @@ class Radiolocator (Thread):
         """System mode setter"""
         self.system_mode = system_mode
 
-    def getfrecuency(self):
-        """Frecuency getter"""
-        return self.frecuency
+    def getfrequency(self):
+        """Frequency getter"""
+        return self.frequency
 
-    def setfrecuency(self, frecuency):
-        """Frecuency setter"""
-        self.frecuency = frecuency
+    def setfrequency(self, frequency):
+        """Frequency setter"""
+        self.frequency = frequency
 
     def getgain(self):
         """Gain getter"""
