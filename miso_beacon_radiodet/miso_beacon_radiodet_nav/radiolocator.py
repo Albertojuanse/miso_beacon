@@ -162,10 +162,10 @@ class Radiolocator (Thread):
             # If it is concurrent mode, each probe is located and evaluated at the same time
             # Every probe is turn on
             for probe in self.probes:
-                probe.getcondition.acquire()
+                probe.getcondition().acquire()
                 probe.setflagon(True)
-                probe.getcondition.notify()
-                probe.getcondition.release()
+                probe.getcondition().notify()
+                probe.getcondition().release()
 
             # Start execution time
             self.inittime = time.time()
@@ -186,9 +186,11 @@ class Radiolocator (Thread):
                         self.state = "NEW_DATA"
                 elif self.state == "LOCATED":
                     if self.isprecised():
+                        print("De maquina, isprecised()")
                         # Stop condition
                         self.idle = True
                         self.state = "IDLE"
+                        print("De maquina, isprecised(): idle", self.idle)
                     else:
                         if self.isnewdata():
                             self.state = "NEW_DATA"
@@ -206,10 +208,10 @@ class Radiolocator (Thread):
 
             # Ask probes to stop taking measures
             for probe in self.probes:
-                probe.getcondition.acquire()
+                probe.getcondition().acquire()
                 probe.setflagon(False)
-                probe.getcondition.notify()
-                probe.getcondition.release()
+                probe.getcondition().notify()
+                probe.getcondition().release()
 
             # Ask measure generators to stop
             feedback_monitor.getcondition().acquire()
@@ -232,7 +234,7 @@ class Radiolocator (Thread):
             newdata = newdata or probe.isempty()
             probe.getcondition().notify()
             probe.getcondition().release()
-
+        print("De isnewdata(): ", newdata)
         return newdata
 
     def getnewdata(self):
@@ -244,6 +246,7 @@ class Radiolocator (Thread):
             measure = probe.dequeuemeasure()
             # dequeue measure method returns None if the queue is empty
             if measure:
+                print("De getnewdata(): ", measure.getuuid(), measure.getrssi())
                 flag = True
                 if len(self.measures) <= MAX_MEASURES:
                     self.measures.append(measure)
@@ -258,18 +261,21 @@ class Radiolocator (Thread):
         """This method localizes the radionavigator using the measures it gets and offers the target direction"""
         # Only if there is a minimum of measures calculations will be tried
         if len(self.measures) > MIN_MEASURES_FOR_PRECISION:
-
+            print("De locate(): ", "comienza")
             # Depending on the system used the treatment of the measures will be different
             if self.measure_mode == "CONCURRENT":
                 if self.system_mode == "RHO_RHO":
-
+                    print("De locate(): ", "sistema")
                     # In concurrent rho rho mode, every measure is given to the system and it calculates the position
                     self.system.setmeasures(self.measures)
+                    print("De locate(): ", "ha dejado la medidas")
                     self.targetposition = self.system.getpositionusingrssiranging(self.probes[0].getposition(),
                                                                                   self.probes[0].getposition(),
                                                                                   self.targetposition
                                                                                   )
+                    print("De locate(): ", "ha llamado al cálculo")
                     self.calculatedpositions.append(self.targetposition)
+                    print("De locate(): ", self.targetposition)
 
                 elif self.system_mode == "RHO_THETA":
                     pass
@@ -286,6 +292,7 @@ class Radiolocator (Thread):
             # If everything successful return True
             return True
         else:
+            print("De locate(): ", "return False")
             return False
 
     def isprecised(self):
@@ -302,6 +309,7 @@ class Radiolocator (Thread):
                 sum = sum + (distance - lastdistance)
                 lastdistance = distance
 
+            print("De isprecised(): ", sum, PRECISION)
             if sum < PRECISION:
                 return True
             else:

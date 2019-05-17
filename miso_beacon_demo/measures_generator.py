@@ -55,15 +55,21 @@ class MeasuresGenerator (Thread):
                 for probe in self.listeningprobes:
                     measure = generaterandomrssimeasurewithtwopositions(self.uuid,
                                                                         self.targetposition,
-                                                                        probe.getposition())
+                                                                        probe.getposition(),
+                                                                        self.expectedvalue,
+                                                                        self.variance,
+                                                                        self.frequency,
+                                                                        self.gain)
                     self.enqueuemeasure(measure, probe)
+                    print("De generator, enqueued", measure.getuuid(), measure.getrssi())
 
                 # Check stop condition
                 feedback_monitor.getcondition().acquire()
-                flag = feedback_monitor.isradiolocatoridle()
+                idle = feedback_monitor.isradiolocatoridle()
+                print("De generator, flag", idle)
                 feedback_monitor.getcondition().notify()
                 feedback_monitor.getcondition().release()
-                if flag:
+                if idle:
                     run = False
 
             elif self.mode == "RADIONAVIGATOR":

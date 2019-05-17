@@ -3,8 +3,6 @@
 from math import sqrt, pow
 from miso_beacon_radiodet.position import Position
 from miso_beacon_radiodet.miso_beacon_radiodet_loc.rho_rho_system import RhoRhoSystem
-from miso_beacon_demo import measures_monitor
-from miso_beacon_demo import points_monitor
 from miso_beacon_demo import feedback_monitor
 
 import time

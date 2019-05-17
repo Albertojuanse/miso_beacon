@@ -5,8 +5,6 @@ import time
 import random
 import matplotlib.pyplot as plt
 
-from miso_beacon_demo import points_monitor
-
 
 class Plot (Thread):
 
