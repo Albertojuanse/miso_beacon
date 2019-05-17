@@ -39,7 +39,7 @@ def getadjacencymatrix(vertices, edges):
                             if vertex1 == vertex2:
                                 pass
                                 # TODO evaluate self-edge case
-                else:  # ...but if not...
+                else:  # ...but if it is directed...
                     # get indices for the vertices in the matrix
                     for i, vertex1 in enumerate(vertices):
                         for j, vertex2 in enumerate(vertices):

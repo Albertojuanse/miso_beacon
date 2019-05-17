@@ -3,7 +3,6 @@
 from miso_beacon_radiodet.position import Position
 from miso_beacon_ai.ranging_functions import calculatedistance
 
-from scipy.optimize import fsolve
 from math import pi, cos, sin, atan
 
 

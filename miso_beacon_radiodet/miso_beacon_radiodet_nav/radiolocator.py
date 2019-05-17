@@ -195,8 +195,7 @@ class Radiolocator (Thread):
                         if self.isnewdata():
                             self.state = "NEW_DATA"
                         else:
-                            print("[ERROR]: NO_DATA; redirecting to NO_LOCATED")
-                            self.state = "NO_LOCATED"
+                            print("[ERROR]: NO_DATA")
                 time.sleep(0.5)
 
             # Results in console
@@ -231,7 +230,7 @@ class Radiolocator (Thread):
         newdata = False
         for probe in self.probes:
             probe.getcondition().acquire()
-            newdata = newdata or probe.isempty()
+            newdata = newdata or not probe.isempty()
             probe.getcondition().notify()
             probe.getcondition().release()
         print("De isnewdata(): ", newdata)
@@ -243,16 +242,19 @@ class Radiolocator (Thread):
         flag = False
         for probe in self.probes:
             probe.getcondition().acquire()
-            measure = probe.dequeuemeasure()
-            # dequeue measure method returns None if the queue is empty
-            if measure:
-                print("De getnewdata(): ", measure.getuuid(), measure.getrssi())
-                flag = True
-                if len(self.measures) <= MAX_MEASURES:
-                    self.measures.append(measure)
-                else:
-                    self.measures.pop(0)
-                    self.measures.append(measure)
+            while True:
+                measure = probe.dequeuemeasure()
+                # dequeue measure method returns None if the queue is empty
+                if measure:
+                    print("De getnewdata(): ", measure.getuuid(), measure.getrssi())
+                    flag = True
+                    if len(self.measures) <= MAX_MEASURES:
+                        self.measures.append(measure)
+                    else:
+                        self.measures.pop(0)
+                        self.measures.append(measure)
+                    break
+                probe.getcondition().wait()
             probe.getcondition().notify()
             probe.getcondition().release()
         return flag
@@ -269,8 +271,16 @@ class Radiolocator (Thread):
                     # In concurrent rho rho mode, every measure is given to the system and it calculates the position
                     self.system.setmeasures(self.measures)
                     print("De locate(): ", "ha dejado la medidas")
-                    self.targetposition = self.system.getpositionusingrssiranging(self.probes[0].getposition(),
-                                                                                  self.probes[0].getposition(),
+
+                    referencepositions = []
+                    for probe in self.probes:
+                        probe.getcondition().acquire()
+                        referencepositions.append(probe.getposition())
+                        probe.getcondition().notify()
+                        probe.getcondition().release()
+
+                    self.targetposition = self.system.getpositionusingrssiranging(referencepositions[0],
+                                                                                  referencepositions[1],
                                                                                   self.targetposition
                                                                                   )
                     print("De locate(): ", "ha llamado al cálculo")

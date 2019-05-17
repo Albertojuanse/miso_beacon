@@ -53,13 +53,19 @@ class MeasuresGenerator (Thread):
 
                 # Create a measure for each listening probe with same UUID an enqueue it
                 for probe in self.listeningprobes:
+
+                    probe.getcondition().acquire()
+                    probeposition = probe.getposition()
+                    probe.getcondition().notify()
+                    probe.getcondition().release()
                     measure = generaterandomrssimeasurewithtwopositions(self.uuid,
                                                                         self.targetposition,
-                                                                        probe.getposition(),
+                                                                        probeposition,
                                                                         self.expectedvalue,
                                                                         self.variance,
                                                                         self.frequency,
                                                                         self.gain)
+
                     self.enqueuemeasure(measure, probe)
                     print("De generator, enqueued", measure.getuuid(), measure.getrssi())
 
@@ -74,6 +80,7 @@ class MeasuresGenerator (Thread):
 
             elif self.mode == "RADIONAVIGATOR":
                 # Static source but mobile device
+                """
                 sourceposition = self.sourceposition
                 deviceposition = self.dequeueposition()
                 measure = generaterandomrssimeasurewithtwopositions(self.uuid,
@@ -84,7 +91,6 @@ class MeasuresGenerator (Thread):
                                                                     frequency=self.frequency,
                                                                     gain=1)
                 self.enqueuemeasure(measure)
-
                 # Check stop condition
                 feedback_monitor.getcondition().acquire()
                 flag = feedback_monitor.isradionavegatoridle()
@@ -92,6 +98,8 @@ class MeasuresGenerator (Thread):
                 feedback_monitor.getcondition().release()
                 if flag:
                     run = False
+                
+                """
 
             time.sleep(self.timestep)
 
