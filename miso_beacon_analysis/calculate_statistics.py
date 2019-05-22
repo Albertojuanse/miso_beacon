@@ -2,9 +2,9 @@
 
 import json
 import sys
-from math import pow, sqrt
+from math import pow, sqrt, pi
 from matplotlib import pyplot
-from numpy import linspace
+from numpy import linspace, arange, reshape, dot, asarray, exp
 
 
 def average(data, name):
@@ -85,6 +85,109 @@ def plot(data, name):
     pyplot.show()
 
 
+def dft_slow(data, name):
+    """Compute the discrete Fourier Transform of the 'name' signal"""
+    """
+    datavalues = []
+    for every in data:
+        if every[name]:
+            datavalues.append(float(every[name]))
+    print("")
+    print("DFT data retieved for "+name)
+
+    x = asarray(datavalues[0:15000], dtype=float)
+    N = x.shape[0]
+    n = arange(N)
+    k = n.reshape((N, 1))
+    M = exp(-2j * pi * k * n / N)
+    dft = dot(M, x)
+    f = range(0, (N - 1)*100 / N)
+    print("DFT calculed for "+name)
+    return f, dft
+    """
+    datavalues = []
+    for every in data:
+        if every[name]:
+            datavalues.append(every[name])
+    print("")
+    print("DFT data retieved for "+name)
+
+    fs = len(datavalues)  # Sampling rate
+    dt = 1/fs
+    N = len(datavalues)  # Sampling of Fourier transform
+    df = 1 / (N * dt)  # Frequency step
+    nyq = 1 / (dt * 2)
+
+    """
+    time = list(range(0, N-1))  # Time values
+    for i, t in enumerate(time):
+        time[i] = t * dt
+    print("DFT time array calculated for "+name)
+    """
+    freq = []  # Frequency values
+    lastfrec = 0
+    while lastfrec < nyq - df:
+        newfreq = -nyq + lastfrec
+        print(newfreq)
+        lastfrec = abs(newfreq)
+        freq.append(newfreq)
+    print("DFT freq array calculated for "+name)
+    print("DFT points:", N)
+
+
+    dft = []
+    for k in range(0, N-1):
+        sum = 0
+        for n in range(0, N-1):
+            sum = sum + datavalues[n+1] * exp(-(1j * 2 * pi * k * n) / N)
+            # sum = sum + datavalues[n+1] * exp(-1*j * 2 * pi + freq[k] * time[n])
+        dft.append(sum)
+        print(k)
+
+    return freq, dft
+
+
+
+def plotdft(n, dft):
+    """This function plots the data"""
+    pyplot.plot(n, dft)
+    pyplot.ylabel("DFT")
+    pyplot.xlabel("pulsation")
+    pyplot.show()
+
+
+def analycequantization(data, name, correction):
+    """This function calculates the quantization step of quantization of the amplitudes of a signal"""
+    min = sys.maxsize
+    lastevery = 0
+    amplitudesteps = []
+    for every in data:
+        if every[name]:
+            amplitudstep = abs(every[name] - lastevery)
+            lastevery = abs(every[name])
+            amplitudesteps.append(amplitudstep)
+            if amplitudstep < min and amplitudstep != 0:
+                min = amplitudstep
+
+    print(amplitudesteps[0:1000])
+    quantizationdata = []
+    for amplitud in amplitudesteps:
+        n = amplitud / min
+        quantizationdata.append(n)
+    quantization = set(quantizationdata)
+
+    print("Consecutive amplitudes minimum step for "+name+" value:", str(min))
+    print("Relations between them for "+name+" value:", str(quantization))
+    print("Corrected minimum step value for "+name+" value: "+str(correction))
+    min = 1.5e-05
+    quantizationdata = []
+    for amplitud in amplitudesteps:
+        n = amplitud / min
+        quantizationdata.append(n)
+    quantization = set(quantizationdata)
+    print("Corrected relations between them for "+name+" value: ", quantization)
+
+
 def main():
 
     name = "accelerometer_raw_data"
@@ -115,9 +218,23 @@ def main():
     print("Mean square error for y value: " + str(msey))
     print("Mean square error for z value: " + str(msez))
 
-    plot(data, "x")
-    plot(data, "y")
-    plot(data, "z")
+    print("")
+    analycequantization(data, "x", 1.5e-5)
+    print("")
+    analycequantization(data, "y", 1.5e-5)
+    print("")
+    analycequantization(data, "z", 1.5e-5)
+
+    # plot(data, "x")
+    # plot(data, "y")
+    # plot(data, "z")
+
+    n, dft = dft_slow(data, "x")
+    plotdft(n, dft)
+    # n, dft = DFT(data, "x")
+    # plotDFT(n, dft)
+    # n, dft = DFT(data, "x")
+    # plotDFT(n, dft)
 
 
 if __name__ == "__main__":
