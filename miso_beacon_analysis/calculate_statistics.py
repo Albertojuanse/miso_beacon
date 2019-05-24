@@ -2,239 +2,242 @@
 
 import json
 import sys
+import os
 from math import pow, sqrt, pi
 from matplotlib import pyplot
 from numpy import linspace, arange, reshape, dot, asarray, exp
 
 
-def average(data, name):
-    """This function calculates the average value of the variable 'name' collected from the data"""
-    sum = 0
-    i = 0
-    for every in data:
-        if every[name]:
-            sum += every[name]
-            i += 1
-    return sum / i
-
-
-def standarddeviation(data, name, ave):
-    """This function calculates the standard deviation of the variable 'name' collected from the data"""
-    sum = 0
-    i = 0
-    for every in data:
-        if every[name]:
-            sum += pow(every[name] - ave, 2)
-            i += 1
-    return sqrt(sum / (i - 1))
-
-
-def meansquarederror(data, name, realvalue):
-    """This function calculates the mean square error value of the variable 'name' collected from the data"""
-    sum = 0
-    i = 0
-    for every in data:
-        if every[name]:
-            sum += pow(every[name] - realvalue, 2)
-            i += 1
-    return sum / i
-
-
+# ##### GET DATA #####
 def readjson(path):
     with open(path, 'r') as f:
         data = json.load(f)
     return data
 
 
-def plot(data, name):
-    """This function plots the signal 'name' and its deviation"""
-    # 12:46:59.996620 12:47:00.008585
-    xplotvalues = []
-    rangeplotvalues = []
-    rangeplotvaluesfirst = data[0]["timestamp"].split(":")
-    rangeplotvaluesfirst[0] = float(rangeplotvaluesfirst[0]) * 3600
-    rangeplotvaluesfirst[1] = float(rangeplotvaluesfirst[1]) * 60
-    rangeplotvaluesfirst.append(rangeplotvaluesfirst[0] + rangeplotvaluesfirst[1] + float(rangeplotvaluesfirst[2]))
-    min = sys.maxsize
-    max = -sys.maxsize
+def getdatafromraw(rawdata, date, name):
+    """This function retrieves each 'name' data item from a 'rawdata' file and a specific 'date'"""
+    data = []
+    for item in rawdata:
+        if item["date"] == date:
+            if item[name]:
+                data.append(item[name])
+    return data
 
-    for every in data:
-        if every[name] and every["timestamp"]:
-            xplotvalues.append(float(every[name]))
-            splitplotvalue = every["timestamp"].split(":")
-            splitplotvalue[0] = float(splitplotvalue[0]) * 3600
-            splitplotvalue[1] = float(splitplotvalue[1]) * 60
-            rangeplotvalues.append(splitplotvalue[0] +
-                                   splitplotvalue[1] +
-                                   float(splitplotvalue[2]) -
-                                   rangeplotvaluesfirst[3])
-            if every[name] < min:
-                min = every[name]
-            if every[name] > max:
-                max = every[name]
 
-    pyplot.plot(rangeplotvalues, xplotvalues)
+def gettimefromraw(rawdata, date):
+    """This function retrieves each 'name' data item's time from a 'rawdata' file and a specific 'date'"""
+    time = []
+    # Get the fisrt time stamp as initial time
+    # Retrieve the time stamp and convert it into seconds
+    splittimefirst = rawdata[0]["timestamp"].split(":")
+    splittimefirst[0] = float(splittimefirst[0]) * 3600
+    splittimefirst[1] = float(splittimefirst[1]) * 60
+    splittimefirst.append(splittimefirst[0] +
+                          splittimefirst[1] +
+                          float(splittimefirst[2]))
+
+    for item in rawdata:
+        if item["date"] == date:
+            if item["timestamp"]:
+                # Retrieve the time stamp and convert it into seconds
+                splittime = item["timestamp"].split(":")
+                splittime[0] = float(splittime[0]) * 3600
+                splittime[1] = float(splittime[1]) * 60
+                time.append(splittime[0] +
+                            splittime[1] +
+                            float(splittime[2]) -
+                            splittimefirst[3])
+    return time
+
+
+# ##### STATISTICS #####
+def average(data):
+    """This function calculates the average value of the data collection"""
+    return sum(data) / len(data)
+
+
+def standarddeviation(data):
+    """This function calculates the standard deviation of the data collection"""
+    ave = average(data)
+    suma = 0
+    for item in data:
+        suma += pow(item - ave, 2)
+    return sqrt(suma / (len(data) - 1))
+
+
+def meansquarederror(data, expectedvalue):
+    """This function calculates the mean square error value of the data collection"""
+    sum = 0
+    for item in data:
+        sum += pow(item - expectedvalue, 2)
+    return sum / len(data)
+
+
+# ##### Signalling #####
+def analycequantization(data):
+    """This function calculates the quantization step of the amplitudes of a signal"""
+
+    # Get the lowest amplitude step among them
+    minamplitudestep = sys.maxsize
+    lastitem = 0
+    amplitudesteps = []
+    for item in data:
+        # Calculate amplitude step by euclidean norm
+        amplitudestep = abs(item - lastitem)
+        lastitem = item
+        amplitudesteps.append(amplitudestep)
+        # Save the minimum of them
+        if amplitudestep < minamplitudestep and amplitudestep != 0:
+            minamplitudestep = amplitudestep
+
+    # Quantization exists if every amplitude is multiple of tha minimum; only for uniform quantizations
+    quantizationdata = []
+    for step in amplitudesteps:
+        n = step / minamplitudestep
+        quantizationdata.append(n)
+    quantization = set(quantizationdata)
+    return minamplitudestep, amplitudesteps, quantization
+
+
+def dft_slow(signal, fs, N=None):
+    """Compute the discrete Fourier Transform of a signal sampled with 'fs' rate in Hz"""
+    # Sampling points for transform
+    if not N:
+        N = len(signal)
+    # Calculate
+    dft = []
+    for m in range(N):
+        sample = 0.0
+        for n in range(N):
+            sample += signal[n] * exp(- 1j * 2 * pi * m * n / N)
+        dft.append(sample / N)
+    # Frequency values for each sample of the N ones
+    fs = fs  # Sampling rate in Hz
+    fn = fs / 2  # Nyquist frequency
+    ts = 1 / fs  # Sampling period
+    df = 1 / (N * ts)  # Frequency step of DFT samples
+
+    freq = []  # Frequency values
+    for i in range(N):
+        freq.append(-fn + i * df)
+    return dft, freq
+
+
+def idft_slow(signal, fs, N=None):
+    """Compute the inverse discrete Fourier Transform of the signal sampled with 'fs' rate in Hz"""
+    # Sampling points for transform
+    if not N:
+        N = len(signal)
+    # Calculate
+    idft = []
+    for n in range(N):
+        fn = 0.0
+        for m in range(N):
+            fn += signal[m] * exp(1j * 2 * pi * m * n / N)
+        idft.append(fn)
+    # Time values for each sample of the signal
+    time = list(range(0, N))
+    ts = 1 / fs  # Sampling period
+    for i, t in enumerate(time):
+        time[i] = t * ts
+
+    return idft, time
+
+
+# ##### Plotting #####
+def plotsignal(time, data, name):
+    """This function plots a signal from a collection of data and its time frame"""
+    pyplot.plot(time, data)
     pyplot.ylabel(name)
     pyplot.xlabel("time")
     pyplot.show()
 
-    bins = linspace(min, max, num=500)
-    pyplot.hist(xplotvalues, bins=bins)
+
+def plothistogram(data, numberofbins, name):
+    """This function plots a histogram from a collection of data ana given number of bins"""
+    minimum = min(data)
+    maximum = max(data)
+    bins = linspace(minimum, maximum, num=numberofbins)
+    pyplot.hist(data, bins=bins)
     pyplot.ylabel(name)
-    pyplot.xlabel("deviation")
+    pyplot.xlabel("Deviation")
     pyplot.show()
-
-
-def dft_slow(data, name):
-    """Compute the discrete Fourier Transform of the 'name' signal"""
-    """
-    datavalues = []
-    for every in data:
-        if every[name]:
-            datavalues.append(float(every[name]))
-    print("")
-    print("DFT data retieved for "+name)
-
-    x = asarray(datavalues[0:15000], dtype=float)
-    N = x.shape[0]
-    n = arange(N)
-    k = n.reshape((N, 1))
-    M = exp(-2j * pi * k * n / N)
-    dft = dot(M, x)
-    f = range(0, (N - 1)*100 / N)
-    print("DFT calculed for "+name)
-    return f, dft
-    """
-    datavalues = []
-    for every in data:
-        if every[name]:
-            datavalues.append(every[name])
-    print("")
-    print("DFT data retieved for "+name)
-
-    fs = len(datavalues)  # Sampling rate
-    dt = 1/fs
-    N = len(datavalues)  # Sampling of Fourier transform
-    df = 1 / (N * dt)  # Frequency step
-    nyq = 1 / (dt * 2)
-
-    """
-    time = list(range(0, N-1))  # Time values
-    for i, t in enumerate(time):
-        time[i] = t * dt
-    print("DFT time array calculated for "+name)
-    """
-    freq = []  # Frequency values
-    lastfrec = 0
-    while lastfrec < nyq - df:
-        newfreq = -nyq + lastfrec
-        print(newfreq)
-        lastfrec = abs(newfreq)
-        freq.append(newfreq)
-    print("DFT freq array calculated for "+name)
-    print("DFT points:", N)
-
-
-    dft = []
-    for k in range(0, N-1):
-        sum = 0
-        for n in range(0, N-1):
-            sum = sum + datavalues[n+1] * exp(-(1j * 2 * pi * k * n) / N)
-            # sum = sum + datavalues[n+1] * exp(-1*j * 2 * pi + freq[k] * time[n])
-        dft.append(sum)
-        print(k)
-
-    return freq, dft
-
 
 
 def plotdft(n, dft):
-    """This function plots the data"""
+    """This function plots a DFT transform of a signal"""
     pyplot.plot(n, dft)
     pyplot.ylabel("DFT")
-    pyplot.xlabel("pulsation")
+    pyplot.xlabel("Frequency")
     pyplot.show()
 
 
-def analycequantization(data, name, correction):
-    """This function calculates the quantization step of quantization of the amplitudes of a signal"""
-    min = sys.maxsize
-    lastevery = 0
-    amplitudesteps = []
-    for every in data:
-        if every[name]:
-            amplitudstep = abs(every[name] - lastevery)
-            lastevery = abs(every[name])
-            amplitudesteps.append(amplitudstep)
-            if amplitudstep < min and amplitudstep != 0:
-                min = amplitudstep
-
-    print(amplitudesteps[0:1000])
-    quantizationdata = []
-    for amplitud in amplitudesteps:
-        n = amplitud / min
-        quantizationdata.append(n)
-    quantization = set(quantizationdata)
-
-    print("Consecutive amplitudes minimum step for "+name+" value:", str(min))
-    print("Relations between them for "+name+" value:", str(quantization))
-    print("Corrected minimum step value for "+name+" value: "+str(correction))
-    min = 1.5e-05
-    quantizationdata = []
-    for amplitud in amplitudesteps:
-        n = amplitud / min
-        quantizationdata.append(n)
-    quantization = set(quantizationdata)
-    print("Corrected relations between them for "+name+" value: ", quantization)
-
-
+# ##### Main #####
 def main():
 
-    name = "accelerometer_raw_data"
-    path = "/Users/miso/Desktop/alberto/Archivo/Código/_Repositorios/miso_beacon/miso_beacon_analysis/" + name
-
+    # Retrieve data from raw file
+    name = "/accelerometer_raw_data"
+    path = os.path.dirname(sys.modules['__main__'].__file__) + name
     data = readjson(path)
-    avex = average(data, "x")
-    avey = average(data, "y")
-    avez = average(data, "z")
+    datax = getdatafromraw(data, "2019-05-21", "x")
+    datay = getdatafromraw(data, "2019-05-21", "y")
+    dataz = getdatafromraw(data, "2019-05-21", "z")
 
+    # Averages
+    avex = average(datax)
+    avey = average(datay)
+    avez = average(dataz)
+    print("#####      Average       #####")
     print("Average for x value: " + str(avex))
     print("Average for y value: " + str(avey))
     print("Average for z value: " + str(avez))
+    print("")
 
-    standesx = standarddeviation(data, "x", avex)
-    standesy = standarddeviation(data, "y", avey)
-    standesz = standarddeviation(data, "z", avez)
-
+    # Standard deviations
+    standesx = standarddeviation(datax)
+    standesy = standarddeviation(datay)
+    standesz = standarddeviation(dataz)
+    print("##### Standard deviation #####")
     print("Standard deviation for x value: " + str(standesx))
     print("Standard deviation for y value: " + str(standesy))
     print("Standard deviation for z value: " + str(standesz))
+    print("")
 
-    msex = meansquarederror(data, "x", 0)
-    msey = meansquarederror(data, "y", 0)
-    msez = meansquarederror(data, "z", -9.7994)
-
+    # Mean squared error
+    expectedx = 0.0
+    expectedy = 0.0
+    expectedz = -9.7994
+    msex = meansquarederror(datax, expectedx)
+    msey = meansquarederror(datay, expectedy)
+    msez = meansquarederror(dataz, expectedz)
+    print("##### Mean square error  #####")
     print("Mean square error for x value: " + str(msex))
     print("Mean square error for y value: " + str(msey))
     print("Mean square error for z value: " + str(msez))
-
     print("")
-    analycequantization(data, "x", 1.5e-5)
-    print("")
-    analycequantization(data, "y", 1.5e-5)
-    print("")
-    analycequantization(data, "z", 1.5e-5)
 
-    # plot(data, "x")
-    # plot(data, "y")
-    # plot(data, "z")
+    # Quantization 1.5e-5
+    minamplitudestepx, amplitudestepsx, quantizationx = analycequantization(datax)
+    minamplitudestepy, amplitudestepsy, quantizationy = analycequantization(datay)
+    minamplitudestepz, amplitudestepsz, quantizationz = analycequantization(dataz)
+    print("##### Quantization step  #####")
+    print("First 100 amplitudes steps for x value:", str(amplitudestepsx[0:100]))
+    print("Minumum amplitude step found for x value:", str(minamplitudestepx))
+    print("Relations between them for x value:", str(quantizationx))
+    print("First 100 amplitudes steps for y value:", str(amplitudestepsy[0:100]))
+    print("Minumum amplitude step found for y value:", str(minamplitudestepy))
+    print("Relations between them for y value:", str(quantizationy))
+    print("First 100 amplitudes steps for z value:", str(amplitudestepsz[0:100]))
+    print("Minumum amplitude step found for z value:", str(minamplitudestepz))
+    print("Relations between them for z value:", str(quantizationz))
 
-    n, dft = dft_slow(data, "x")
-    plotdft(n, dft)
-    # n, dft = DFT(data, "x")
-    # plotDFT(n, dft)
-    # n, dft = DFT(data, "x")
-    # plotDFT(n, dft)
+    timex = gettimefromraw(data, "2019-05-21")
+    timey = gettimefromraw(data, "2019-05-21")
+    timez = gettimefromraw(data, "2019-05-21")
+
+    plotsignal(timex, datax, "x")
+    plothistogram(datax, 500, "x")
 
 
 if __name__ == "__main__":
