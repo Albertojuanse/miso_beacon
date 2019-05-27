@@ -177,12 +177,24 @@ def plotdft(n, dft):
 def main():
 
     # Retrieve data from raw file
-    name = "/accelerometer_raw_data"
+
+    # name = "/accelerometer_raw_data" "2019-05-21"
+    # date = "2019-05-21"
+    # expectedx = 0.0
+    # expectedy = 0.0
+    # expectedz = -9.7994
+
+    name = "/gyroscope_raw_data"
+    date = "2019-05-27"
+    expectedx = 0.0
+    expectedy = 0.0
+    expectedz = 0.0
+
     path = os.path.dirname(sys.modules['__main__'].__file__) + name
     data = readjson(path)
-    datax = getdatafromraw(data, "2019-05-21", "x")
-    datay = getdatafromraw(data, "2019-05-21", "y")
-    dataz = getdatafromraw(data, "2019-05-21", "z")
+    datax = getdatafromraw(data, date, "x")
+    datay = getdatafromraw(data, date, "y")
+    dataz = getdatafromraw(data, date, "z")
 
     # Averages
     avex = average(datax)
@@ -205,9 +217,6 @@ def main():
     print("")
 
     # Mean squared error
-    expectedx = 0.0
-    expectedy = 0.0
-    expectedz = -9.7994
     msex = meansquarederror(datax, expectedx)
     msey = meansquarederror(datay, expectedy)
     msez = meansquarederror(dataz, expectedz)
@@ -232,12 +241,14 @@ def main():
     print("Minumum amplitude step found for z value:", str(minamplitudestepz))
     print("Relations between them for z value:", str(quantizationz))
 
-    timex = gettimefromraw(data, "2019-05-21")
-    timey = gettimefromraw(data, "2019-05-21")
-    timez = gettimefromraw(data, "2019-05-21")
+    timex = gettimefromraw(data, date)
+    timey = gettimefromraw(data, date)
+    timez = gettimefromraw(data, date)
 
     plotsignal(timex, datax, "x")
-    plothistogram(datax, 500, "x")
+    plothistogram(datax, 1000, "x")
+    plothistogram(datay, 1000, "x")
+    plothistogram(dataz, 1000, "x")
 
 
 if __name__ == "__main__":
