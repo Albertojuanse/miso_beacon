@@ -184,8 +184,14 @@ def main():
     # expectedy = 0.0
     # expectedz = -9.7994
 
-    name = "/gyroscope_raw_data"
-    date = "2019-05-27"
+    # name = "/gyroscope_raw_data"
+    # date = "2019-05-27"
+    # expectedx = 0.0
+    # expectedy = 0.0
+    # expectedz = 0.0
+
+    name = "/wave_raw_data"
+    date = "2019-05-30"
     expectedx = 0.0
     expectedy = 0.0
     expectedz = 0.0
@@ -247,8 +253,8 @@ def main():
 
     plotsignal(timex, datax, "x")
     plothistogram(datax, 1000, "x")
-    plothistogram(datay, 1000, "x")
-    plothistogram(dataz, 1000, "x")
+    # plothistogram(datay, 1000, "x")
+    # plothistogram(dataz, 1000, "x")
 
 
 if __name__ == "__main__":
