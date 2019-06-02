@@ -20,6 +20,6 @@ def enquedata(point):
 
 def getdata():
     if len(data) > 0:
-        return data
+        return data.pop()
     else:
         return None
