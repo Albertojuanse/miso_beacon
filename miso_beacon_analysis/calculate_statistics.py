@@ -15,17 +15,23 @@ def readjson(path):
     return data
 
 
-def getdatafromraw(rawdata, date, name):
-    """This function retrieves each 'name' data item from a 'rawdata' file and a specific 'date'"""
+def getdatafromraw(rawdata, date, name, type=None):
+    """This function retrieves each 'name' data item from a 'rawdata' file and a specific 'date'; it checks the type if
+    it exists."""
     data = []
     for item in rawdata:
         if item["date"] == date:
-            if item[name]:
-                data.append(item[name])
+            if type:
+                if item["type"] == type:
+                    if not item[name] is None:
+                        data.append(item[name])
+            else:
+                if item[name]:
+                    data.append(item[name])
     return data
 
 
-def gettimefromraw(rawdata, date):
+def gettimefromraw(rawdata, date, type=None):
     """This function retrieves each 'name' data item's time from a 'rawdata' file and a specific 'date'"""
     time = []
     # Get the fisrt time stamp as initial time
@@ -39,15 +45,27 @@ def gettimefromraw(rawdata, date):
 
     for item in rawdata:
         if item["date"] == date:
-            if item["timestamp"]:
-                # Retrieve the time stamp and convert it into seconds
-                splittime = item["timestamp"].split(":")
-                splittime[0] = float(splittime[0]) * 3600
-                splittime[1] = float(splittime[1]) * 60
-                time.append(splittime[0] +
-                            splittime[1] +
-                            float(splittime[2]) -
-                            splittimefirst[3])
+            if type:
+                if item["type"] == type:
+                    if item["timestamp"]:
+                        # Retrieve the time stamp and convert it into seconds
+                        splittime = item["timestamp"].split(":")
+                        splittime[0] = float(splittime[0]) * 3600
+                        splittime[1] = float(splittime[1]) * 60
+                        time.append(splittime[0] +
+                                    splittime[1] +
+                                    float(splittime[2]) -
+                                    splittimefirst[3])
+            else:
+                if item["timestamp"]:
+                    # Retrieve the time stamp and convert it into seconds
+                    splittime = item["timestamp"].split(":")
+                    splittime[0] = float(splittime[0]) * 3600
+                    splittime[1] = float(splittime[1]) * 60
+                    time.append(splittime[0] +
+                                splittime[1] +
+                                float(splittime[2]) -
+                                splittimefirst[3])
     return time
 
 
