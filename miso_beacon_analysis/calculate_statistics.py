@@ -178,11 +178,11 @@ def main():
 
     # Retrieve data from raw file
 
-    # name = "/accelerometer_raw_data" "2019-05-21"
-    # date = "2019-05-21"
-    # expectedx = 0.0
-    # expectedy = 0.0
-    # expectedz = -9.7994
+    name = "/accelerometer_raw_data"
+    date = "2019-05-21"
+    expectedx = 0.0
+    expectedy = 0.0
+    expectedz = -9.7994
 
     # name = "/gyroscope_raw_data"
     # date = "2019-05-27"
@@ -190,11 +190,11 @@ def main():
     # expectedy = 0.0
     # expectedz = 0.0
 
-    name = "/wave_raw_data"
-    date = "2019-05-30"
-    expectedx = 0.0
-    expectedy = 0.0
-    expectedz = 0.0
+    # name = "/wave_raw_data"
+    # date = "2019-05-30"
+    # expectedx = 0.0
+    # expectedy = 0.0
+    # expectedz = 0.0
 
     path = os.path.dirname(sys.modules['__main__'].__file__) + name
     data = readjson(path)
