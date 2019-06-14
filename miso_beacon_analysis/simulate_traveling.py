@@ -115,12 +115,59 @@ def plotraw(data_accelerometer_x, data_gyroscope_x, data_accelerometer_y, data_g
     plt.show()
 
 
-def kinematics(t, data_accelerometer_x, data_accelerometer_y, data_accelerometer_z):
+def kinematics(t, g, data_accelerometer_x, data_accelerometer_y, data_accelerometer_z):
+
+    ax, vx, px = [], [], []
+    ay, vy, py = [], [], []
+    az, vz, pz = [], [], []
+
+    ax_inst, vx_inst, px_inst = 0, 0, 0
+    ay_inst, vy_inst, py_inst = 0, 0, 0
+    az_inst, vz_inst, pz_inst = 0, 0, 0
+
+    for item in data_accelerometer_x:
+        ax_inst += item * g
+        ax.append(ax_inst)
+        vx_inst -= ax_inst * t
+        vx.append(vx_inst)
+        px_inst += (1.0 / 2.0) * vx_inst * t
+        px.append(px_inst)
+
+    for item in data_accelerometer_y:
+        ay_inst += item * g
+        ay.append(ay_inst)
+        vy_inst -= ay_inst * t
+        vy.append(vy_inst)
+        py_inst += (1.0 / 2.0) * vy_inst * t
+        py.append(py_inst)
+
+    for item in data_accelerometer_z:
+        az_inst += item * g
+        az.append(az_inst)
+        vz_inst -= az_inst * t
+        vz.append(vz_inst)
+        pz_inst += (1.0 / 2.0) * vz_inst * t
+        pz.append(pz_inst)
 
     return ax, vx, px, ay, vy, py, az, vz, pz
 
 
 def attitude(t, data_gyroscope_x, data_gyroscope_y, data_gyroscope_z):
+
+    dp, dr, dy = [], [], []
+    dp_inst, dr_inst, dy_inst = 0, 0, 0
+
+    for item in data_gyroscope_x:
+        dp_inst += item * t
+        dp.append(dp_inst)
+
+    for item in data_gyroscope_y:
+        dr_inst += item * t
+        dr.append(dr_inst)
+
+    for item in data_gyroscope_z:
+        dy_inst += item * t
+        dy.append(dy_inst)
 
     return dp, dr, dy
 
@@ -138,30 +185,57 @@ def plotkinematics(time_accelerometer_x, time_accelerometer_y, time_acceleromete
     v_z_plot = fig.add_subplot(336)
     p_z_plot = fig.add_subplot(339)
 
-    accelerometer_x_plot.plot(time_accelerometer_x, data_accelerometer_x)
-    accelerometer_x_plot.set_xlabel("Time")
-    accelerometer_x_plot.set_ylabel("Accelerometer x")
-    gyroscope_x_plot.plot(time_gyroscope_x, data_gyroscope_x)
-    gyroscope_x_plot.set_xlabel("Time")
-    gyroscope_x_plot.set_ylabel("Gyroscope x")
+    a_x_plot.plot(time_accelerometer_x, ax)
+    a_x_plot.set_xlabel("Time")
+    a_x_plot.set_ylabel("Acceleration x")
+    v_x_plot.plot(time_accelerometer_x, vx)
+    v_x_plot.set_xlabel("Time")
+    v_x_plot.set_ylabel("Velocity x")
+    p_x_plot.plot(time_accelerometer_x, px)
+    p_x_plot.set_xlabel("Time")
+    p_x_plot.set_ylabel("Position x")
 
-    accelerometer_y_plot.plot(time_accelerometer_y, data_accelerometer_y)
-    accelerometer_y_plot.set_xlabel("Time")
-    accelerometer_y_plot.set_ylabel("Accelerometer y")
-    gyroscope_y_plot.plot(time_gyroscope_y, data_gyroscope_y)
-    gyroscope_y_plot.set_xlabel("Time")
-    gyroscope_y_plot.set_ylabel("Gyroscope y")
+    a_y_plot.plot(time_accelerometer_y, ay)
+    a_y_plot.set_xlabel("Time")
+    a_y_plot.set_ylabel("Acceleration y")
+    v_y_plot.plot(time_accelerometer_y, vy)
+    v_y_plot.set_xlabel("Time")
+    v_y_plot.set_ylabel("Velocity y")
+    p_y_plot.plot(time_accelerometer_y, py)
+    p_y_plot.set_xlabel("Time")
+    p_y_plot.set_ylabel("Position y")
 
-    accelerometer_z_plot.plot(time_accelerometer_z, data_accelerometer_z)
-    accelerometer_z_plot.set_xlabel("Time")
-    accelerometer_z_plot.set_ylabel("Accelerometer z")
-    gyroscope_z_plot.plot(time_gyroscope_z, data_gyroscope_z)
-    gyroscope_z_plot.set_xlabel("Time")
-    gyroscope_z_plot.set_ylabel("Gyroscope z")
+    a_z_plot.plot(time_accelerometer_z, az)
+    a_z_plot.set_xlabel("Time")
+    a_z_plot.set_ylabel("Acceleration z")
+    v_z_plot.plot(time_accelerometer_z, vz)
+    v_z_plot.set_xlabel("Time")
+    v_z_plot.set_ylabel("Velocity x")
+    p_z_plot.plot(time_accelerometer_z, pz)
+    p_z_plot.set_xlabel("Time")
+    p_z_plot.set_ylabel("Position z")
 
     plt.show()
 
+
 def plotattitude(time_gyroscope_x, time_gyroscope_y, time_gyroscope_z, dp, dr, dy):
+
+    fig = plt.figure()
+    dp_plot = fig.add_subplot(311)
+    dr_plot = fig.add_subplot(312)
+    dy_plot = fig.add_subplot(313)
+
+    dp_plot.plot(time_gyroscope_x, dp)
+    dp_plot.set_xlabel("Time")
+    dp_plot.set_ylabel("Pitch around x axis")
+    dr_plot.plot(time_gyroscope_y, dr)
+    dr_plot.set_xlabel("Time")
+    dr_plot.set_ylabel("Roll around y axis")
+    dy_plot.plot(time_gyroscope_z, dy)
+    dy_plot.set_xlabel("Time")
+    dy_plot.set_ylabel("Yaw around z axis")
+
+    plt.show()
 
 
 # ##### Main #####
@@ -169,6 +243,7 @@ def main():
 
     # Configuration
     t = 1/100
+    g = 9.7994
 
     # Retrieve data from raw file
 
@@ -190,13 +265,15 @@ def main():
             time_accelerometer_z, time_gyroscope_z)
 
     # Calculate kinematics and attitude
-    ax, vx, px, ay, vy, py, az, vz, pz = kinematics(t, data_accelerometer_x, data_accelerometer_y, data_accelerometer_z)
+    ax, vx, px, ay, vy, py, az, vz, pz = kinematics(t, g, data_accelerometer_x, data_accelerometer_y, data_accelerometer_z)
 
     dp, dr, dy = attitude(t, data_gyroscope_x, data_gyroscope_y, data_gyroscope_z)
 
     # Plot kinematics and attitude
     plotkinematics(time_accelerometer_x, time_accelerometer_y, time_accelerometer_z, ax, vx, px, ay, vy, py, az, vz, pz)
     plotattitude(time_gyroscope_x, time_gyroscope_y, time_gyroscope_z, dp, dr, dy)
+
+    # dp * 180 / M_PI
 
 
 if __name__ == "__main__":
