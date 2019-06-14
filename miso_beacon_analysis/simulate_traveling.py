@@ -4,8 +4,10 @@ import os
 import sys
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+from numpy import linspace
 
-# ##### Raw data extracting and plotting
+
+# ##### Raw data extracting and plotting #####
 def preparedata():
 
     # Retrieve data from raw file
@@ -238,6 +240,104 @@ def plotattitude(time_gyroscope_x, time_gyroscope_y, time_gyroscope_z, dp, dr, d
     plt.show()
 
 
+def plotpath(px, py, pz):
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(px, py, pz)
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    plt.show()
+
+
+# ##### White noise analysis #####
+def noiseanalysis(amplitudethreshold, data_accelerometer_x, data_gyroscope_x, data_accelerometer_y,
+                  data_gyroscope_y, data_accelerometer_z, data_gyroscope_z):
+
+    fig = plt.figure()
+
+    accelerometer_x_index = 1
+    accelerometer_x_sum = 0
+    accelerometer_x_ave = 0
+    accelerometer_x_noise = []
+    for item in data_accelerometer_x:
+
+        if abs(accelerometer_x_ave - item) > amplitudethreshold:
+            break
+
+        if item > 0:
+            accelerometer_x_sum += item
+            accelerometer_x_ave = accelerometer_x_sum / accelerometer_x_index
+            accelerometer_x_noise.append(item)
+
+        accelerometer_x_index += 1
+
+    accelerometer_x_standarddeviation = standarddeviation(accelerometer_x_noise)
+
+    accelerometer_x_plot = fig.add_subplot(321)
+    accelerometer_x_plot.hist(accelerometer_x_noise, bins=500)
+    accelerometer_x_plot.axvline(x=accelerometer_x_ave, color='k', linestyle='--')
+    accelerometer_x_plot.axvline(x=(accelerometer_x_ave+accelerometer_x_standarddeviation), color='r', linestyle='--')
+    accelerometer_x_plot.axvline(x=(accelerometer_x_ave-accelerometer_x_standarddeviation), color='r', linestyle='--')
+    accelerometer_x_plot.set_ylabel("Initial Noise of x accelerometer")
+    accelerometer_x_plot.set_xlabel("Deviation")
+
+    accelerometer_y_index = 1
+    accelerometer_y_sum = 0
+    accelerometer_y_ave = 0
+    accelerometer_y_noise = []
+    for item in data_accelerometer_y:
+
+        if abs(accelerometer_y_ave - item) > amplitudethreshold:
+            break
+
+        if item > 0:
+            accelerometer_y_sum += item
+            accelerometer_y_ave = accelerometer_y_sum / accelerometer_y_index
+            accelerometer_y_noise.append(item)
+
+        accelerometer_y_index += 1
+
+    accelerometer_y_standarddeviation = standarddeviation(accelerometer_y_noise)
+
+    accelerometer_y_plot = fig.add_subplot(323)
+    accelerometer_y_plot.hist(accelerometer_y_noise, bins=500)
+    accelerometer_y_plot.axvline(x=accelerometer_y_ave, color='k', linestyle='--')
+    accelerometer_y_plot.axvline(x=(accelerometer_y_ave+accelerometer_y_standarddeviation), color='r', linestyle='--')
+    accelerometer_y_plot.axvline(x=(accelerometer_y_ave-accelerometer_y_standarddeviation), color='r', linestyle='--')
+    accelerometer_y_plot.set_ylabel("Initial Noise of y accelerometer")
+    accelerometer_y_plot.set_xlabel("Deviation")
+
+    accelerometer_z_index = 1
+    accelerometer_z_sum = 0
+    accelerometer_z_ave = 0
+    accelerometer_z_noise = []
+    for item in data_accelerometer_z:
+
+        if abs(accelerometer_z_ave - item) > amplitudethreshold:
+            break
+
+        accelerometer_z_sum += item
+        accelerometer_z_ave = accelerometer_z_sum / accelerometer_z_index
+        accelerometer_z_noise.append(item)
+
+        accelerometer_z_index += 1
+
+    accelerometer_z_standarddeviation = standarddeviation(accelerometer_z_noise)
+
+    accelerometer_z_plot = fig.add_subplot(325)
+    accelerometer_z_plot.hist(accelerometer_z_noise, bins=500)
+    accelerometer_z_plot.axvline(x=accelerometer_z_ave, color='k', linestyle='--')
+    accelerometer_z_plot.axvline(x=(accelerometer_z_ave+accelerometer_z_standarddeviation), color='r', linestyle='--')
+    accelerometer_z_plot.axvline(x=(accelerometer_z_ave-accelerometer_z_standarddeviation), color='r', linestyle='--')
+    accelerometer_z_plot.set_ylabel("Initial Noise of z accelerometer")
+    accelerometer_z_plot.set_xlabel("Deviation")
+
+    plt.show()
+
+
 # ##### Main #####
 def main():
 
@@ -252,6 +352,8 @@ def main():
 
     time_accelerometer_x, time_gyroscope_x, time_accelerometer_y, \
     time_gyroscope_y, time_accelerometer_z, time_gyroscope_z = preparetimes()
+
+    # ##### Raw information #####
 
     # Print basic statistics
 
@@ -272,8 +374,15 @@ def main():
     # Plot kinematics and attitude
     plotkinematics(time_accelerometer_x, time_accelerometer_y, time_accelerometer_z, ax, vx, px, ay, vy, py, az, vz, pz)
     plotattitude(time_gyroscope_x, time_gyroscope_y, time_gyroscope_z, dp, dr, dy)
+    plotpath(px, py, pz)
 
-    # dp * 180 / M_PI
+    # ##### White noise analysis #####
+
+    # Initial noise is analyzed with as many initial samples as found before a step higher than this amplitude threshold
+    amplitudethreshold = 0.04
+
+    noiseanalysis(amplitudethreshold, data_accelerometer_x, data_gyroscope_x, data_accelerometer_y,
+                  data_gyroscope_y, data_accelerometer_z, data_gyroscope_z)
 
 
 if __name__ == "__main__":
