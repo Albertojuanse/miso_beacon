@@ -267,7 +267,7 @@ def noiseanalysis(amplitudethreshold, data_accelerometer_x, data_gyroscope_x, da
         if abs(accelerometer_x_ave - item) > amplitudethreshold:
             break
 
-        if item > 0:
+        if item != 0:
             accelerometer_x_sum += item
             accelerometer_x_ave = accelerometer_x_sum / accelerometer_x_index
             accelerometer_x_noise.append(item)
@@ -293,7 +293,7 @@ def noiseanalysis(amplitudethreshold, data_accelerometer_x, data_gyroscope_x, da
         if abs(accelerometer_y_ave - item) > amplitudethreshold:
             break
 
-        if item > 0:
+        if item != 0:
             accelerometer_y_sum += item
             accelerometer_y_ave = accelerometer_y_sum / accelerometer_y_index
             accelerometer_y_noise.append(item)
@@ -334,6 +334,84 @@ def noiseanalysis(amplitudethreshold, data_accelerometer_x, data_gyroscope_x, da
     accelerometer_z_plot.axvline(x=(accelerometer_z_ave-accelerometer_z_standarddeviation), color='r', linestyle='--')
     accelerometer_z_plot.set_ylabel("Initial Noise of z accelerometer")
     accelerometer_z_plot.set_xlabel("Deviation")
+
+    gyroscope_x_index = 1
+    gyroscope_x_sum = 0
+    gyroscope_x_ave = 0
+    gyroscope_x_noise = []
+    for item in data_gyroscope_x:
+
+        if abs(gyroscope_x_ave - item) > 2*amplitudethreshold:
+            break
+
+        if item != 0:
+            gyroscope_x_sum += item
+            gyroscope_x_ave = gyroscope_x_sum / gyroscope_x_index
+            gyroscope_x_noise.append(item)
+
+        gyroscope_x_index += 1
+
+    gyroscope_x_standarddeviation = standarddeviation(gyroscope_x_noise)
+
+    gyroscope_x_plot = fig.add_subplot(322)
+    gyroscope_x_plot.hist(gyroscope_x_noise, bins=500)
+    gyroscope_x_plot.axvline(x=gyroscope_x_ave, color='k', linestyle='--')
+    gyroscope_x_plot.axvline(x=(gyroscope_x_ave+gyroscope_x_standarddeviation), color='r', linestyle='--')
+    gyroscope_x_plot.axvline(x=(gyroscope_x_ave-gyroscope_x_standarddeviation), color='r', linestyle='--')
+    gyroscope_x_plot.set_ylabel("Initial Noise of x gyroscope")
+    gyroscope_x_plot.set_xlabel("Deviation")
+
+    gyroscope_y_index = 1
+    gyroscope_y_sum = 0
+    gyroscope_y_ave = 0
+    gyroscope_y_noise = []
+    for item in data_gyroscope_y:
+
+        if abs(gyroscope_y_ave - item) > 2*amplitudethreshold:
+            break
+
+        if item != 0:
+            gyroscope_y_sum += item
+            gyroscope_y_ave = gyroscope_y_sum / gyroscope_y_index
+            gyroscope_y_noise.append(item)
+
+        gyroscope_y_index += 1
+
+    gyroscope_y_standarddeviation = standarddeviation(gyroscope_y_noise)
+
+    gyroscope_y_plot = fig.add_subplot(324)
+    gyroscope_y_plot.hist(gyroscope_y_noise, bins=500)
+    gyroscope_y_plot.axvline(x=gyroscope_y_ave, color='k', linestyle='--')
+    gyroscope_y_plot.axvline(x=(gyroscope_y_ave+gyroscope_y_standarddeviation), color='r', linestyle='--')
+    gyroscope_y_plot.axvline(x=(gyroscope_y_ave-gyroscope_y_standarddeviation), color='r', linestyle='--')
+    gyroscope_y_plot.set_ylabel("Initial Noise of y gyroscope")
+    gyroscope_y_plot.set_xlabel("Deviation")
+
+    gyroscope_z_index = 1
+    gyroscope_z_sum = 0
+    gyroscope_z_ave = 0
+    gyroscope_z_noise = []
+    for item in data_gyroscope_z:
+
+        if abs(gyroscope_z_ave - item) > 2*amplitudethreshold:
+            break
+
+        if item != 0:
+            gyroscope_z_sum += item
+            gyroscope_z_ave = gyroscope_z_sum / gyroscope_z_index
+            gyroscope_z_noise.append(item)
+
+        gyroscope_z_index += 1
+
+    gyroscope_z_standarddeviation = standarddeviation(gyroscope_z_noise)
+
+    gyroscope_z_plot = fig.add_subplot(326)
+    gyroscope_z_plot.hist(gyroscope_z_noise, bins=500)
+    gyroscope_z_plot.axvline(x=gyroscope_z_ave, color='k', linestyle='--')
+    gyroscope_z_plot.axvline(x=(gyroscope_z_ave+gyroscope_z_standarddeviation), color='r', linestyle='--')
+    gyroscope_z_plot.axvline(x=(gyroscope_z_ave-gyroscope_z_standarddeviation), color='r', linestyle='--')
+    gyroscope_z_plot.set_ylabel("Initial Noise of z gyroscope")
+    gyroscope_z_plot.set_xlabel("Deviation")
 
     plt.show()
 
