@@ -36,6 +36,12 @@ ax.set_zlabel('Z')
 
 plt.show()
 """
+
+
+
+
+
+
 """
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
@@ -94,6 +100,10 @@ plt.show()
 """
 
 
+
+
+
+"""
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from math import pi, cos, sin
@@ -326,5 +336,125 @@ ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
 
+
+plt.show()
+
+"""
+
+
+
+
+
+
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from math import pi, cos, sin
+import sys
+import numpy as np
+
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+grid = [(0.0, 0.0, 0.0),
+        (0.0, 0.25, 0.0),
+        (0.0, 0.5, 0.0),
+        (0.0, 0.75, 0.0),
+        (0.0, 1.0, 0.0),
+        (0.25, 0.0, 0.0),
+        (0.25, 0.25, 0.0),
+        (0.25, 0.5, 0.0),
+        (0.25, 0.75, 0.0),
+        (0.25, 1.0, 0.0),
+        (0.5, 0.0, 0.0),
+        (0.5, 0.25, 0.0),
+        (0.5, 0.5, 0.0),
+        (0.5, 0.75, 0.0),
+        (0.5, 1.0, 0.0),
+        (0.75, 0.0, 0.0),
+        (0.75, 0.25, 0.0),
+        (0.75, 0.5, 0.0),
+        (0.75, 0.75, 0.0),
+        (0.75, 1.0, 0.0),
+        (1.0, 0.0, 0.0),
+        (1.0, 0.25, 0.0),
+        (1.0, 0.5, 0.0),
+        (1.0, 0.75, 0.0),
+        (1.0, 1.0, 0.0)]
+
+measures = {
+    "measurePosition1":
+        {"measurePosition": (0.0, 0.0, 0.0),
+         "measures": (1.8, 1.8)
+         },
+    "measurePosition2":
+        {"measurePosition": (0.0, 1.0, 0.0),
+         "measures": (1.8, 1.8)
+         },
+    "measurePosition3":
+        {"measurePosition": (1.0, 0.0, 0.0),
+         "measures": (1.8, 1.8)
+         },
+    "measurePosition4":
+        {"measurePosition": (1.0, 1.0, 0.0),
+         "measures": (1.8, 1.8)
+         }
+}
+
+
+def euclideandistance(p1, p2):
+    res = pow(
+        pow(p2[0] - p1[0], 2) +
+        pow(p2[1] - p1[1], 2) +
+        pow(p2[2] - p1[2], 2),
+        0.5
+    )
+    return res
+
+
+minarg = sys.float_info.max
+minargPos = (0, 0, 0)
+
+for x in grid:
+
+    ax.scatter(x[0], x[1], x[2], color='r')
+
+    sum = 0
+    for measurePositionKey in measures:
+        measurePosition = measures[measurePositionKey]["measurePosition"]
+        rSum = 0
+        rSumIndex = 0
+        for measure in measures[measurePositionKey]["measures"]:
+            rSum += measure
+            rSumIndex += 1
+        r = rSum / rSumIndex
+        sum += (euclideandistance(x, measurePosition) - r) ** 2
+
+        ax.set_aspect('equal')
+        """
+
+        u = np.linspace(0, 2 * np.pi, 100)
+        v = np.linspace(0, np.pi, 100)
+
+        xs = r * np.outer(np.cos(u), np.sin(v)) + measurePosition[0]
+        ys = r * np.outer(np.sin(u), np.sin(v)) + measurePosition[1]
+        zs = 0 * np.outer(np.ones(np.size(u)), np.cos(v)) + measurePosition[2]
+
+        ax.plot_surface(xs, ys, zs, rstride=4, cstride=4, color='b', linewidth=0, alpha=0.1)
+        """
+    ax.text(x[0], x[1], x[2], s=str(sum), fontdict={'size': 6},)
+
+    if sum < minarg:
+        minarg = sum
+        minargPos = x
+
+
+
+ax.scatter(minargPos[0], minargPos[1], minargPos[2], 'g')
+print(minargPos)
+print(minarg)
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
 
 plt.show()
